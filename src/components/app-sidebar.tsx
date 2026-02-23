@@ -66,12 +66,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouterState()
   const currentPath = router.location.pathname
 
+  const isActive = (url: string) =>
+    currentPath === url || currentPath.startsWith(`${url}/`)
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" tooltip="SpotiTrack">
+            <SidebarMenuButton
+              size="lg"
+              render={<Link to="/dashboard" />}
+            >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <IconBrandSpotify className="size-5" />
               </div>
@@ -94,8 +100,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    tooltip={item.title}
-                    isActive={currentPath === item.url}
+                    isActive={isActive(item.url)}
                     render={<Link to={item.url} />}
                   >
                     {item.icon}
@@ -112,8 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navSecondary.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    tooltip={item.title}
-                    isActive={currentPath === item.url}
+                    isActive={isActive(item.url)}
                     render={<Link to={item.url} />}
                   >
                     {item.icon}

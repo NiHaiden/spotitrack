@@ -21,6 +21,16 @@ import { spotifyGetWithAutoRefresh } from "@/lib/server/spotify-api"
 
 const backgroundSyncLocks = new Map<string, number>()
 const BACKGROUND_SYNC_COOLDOWN_MS = 2 * 60 * 1000
+const MIN_PLAY_MS = 5_000
+
+type BackgroundSyncRuntimeState = {
+  isRunning: boolean
+  lastTriggeredAt: number | null
+  lastCompletedAt: number | null
+  lastErrorAt: number | null
+}
+
+const backgroundSyncRuntime = new Map<string, BackgroundSyncRuntimeState>()
 
 export type SpotifyImage = {
   url: string
@@ -127,6 +137,21 @@ function chunk<T>(array: T[], size: number): T[][] {
   return chunks
 }
 
+function hasArtistImage(images: unknown) {
+  if (!Array.isArray(images)) {
+    return false
+  }
+
+  return images.some(image => {
+    if (!image || typeof image !== "object") {
+      return false
+    }
+
+    const candidate = image as { url?: unknown }
+    return typeof candidate.url === "string" && candidate.url.length > 0
+  })
+}
+
 async function enrichArtistsWithSpotifyData(
   userId: string,
   artists: Map<string, SpotifyArtistPayload>,
@@ -189,7 +214,54 @@ export async function upsertSpotifyMetadata(
     }
   }
 
-  await enrichArtistsWithSpotifyData(userId, artists)
+  const artistIds = Array.from(artists.keys())
+  const existingArtists = artistIds.length
+    ? await db
+        .select({
+          id: spotifyArtist.id,
+          name: spotifyArtist.name,
+          genres: spotifyArtist.genres,
+          popularity: spotifyArtist.popularity,
+          images: spotifyArtist.images,
+        })
+        .from(spotifyArtist)
+        .where(inArray(spotifyArtist.id, artistIds))
+    : []
+
+  const existingArtistMap = new Map(existingArtists.map(artist => [artist.id, artist]))
+  const artistsNeedingEnrichment = new Map<string, SpotifyArtistPayload>()
+
+  for (const [artistId, artist] of artists.entries()) {
+    const existing = existingArtistMap.get(artistId)
+    if (!existing) {
+      artistsNeedingEnrichment.set(artistId, artist)
+      continue
+    }
+
+    if (hasArtistImage(existing.images)) {
+      artists.set(artistId, {
+        id: artistId,
+        name: existing.name ?? artist.name,
+        genres: Array.isArray(existing.genres)
+          ? (existing.genres as string[])
+          : (artist.genres ?? []),
+        popularity: existing.popularity ?? artist.popularity,
+        images: Array.isArray(existing.images)
+          ? (existing.images as SpotifyImage[])
+          : (artist.images ?? []),
+      })
+    } else {
+      artistsNeedingEnrichment.set(artistId, artist)
+    }
+  }
+
+  if (artistsNeedingEnrichment.size > 0) {
+    await enrichArtistsWithSpotifyData(userId, artistsNeedingEnrichment)
+
+    for (const [artistId, artist] of artistsNeedingEnrichment.entries()) {
+      artists.set(artistId, artist)
+    }
+  }
 
   await db
     .insert(spotifyArtist)
@@ -276,10 +348,16 @@ export async function storeListeningEvents(items: PlayInsert[]) {
     return 0
   }
 
+  const playableItems = items.filter(item => item.msPlayed >= MIN_PLAY_MS)
+
+  if (playableItems.length === 0) {
+    return 0
+  }
+
   const inserted = await db
     .insert(spotifyPlay)
     .values(
-      items.map(item => ({
+      playableItems.map(item => ({
         id: crypto.randomUUID(),
         userId: item.userId,
         trackId: item.trackId,
@@ -341,17 +419,83 @@ export function triggerBackgroundRecentSync(userId: string, limit = 50) {
     return false
   }
 
+  const runtimeState = backgroundSyncRuntime.get(userId) ?? {
+    isRunning: false,
+    lastTriggeredAt: null,
+    lastCompletedAt: null,
+    lastErrorAt: null,
+  }
+
+  runtimeState.isRunning = true
+  runtimeState.lastTriggeredAt = now
+  backgroundSyncRuntime.set(userId, runtimeState)
   backgroundSyncLocks.set(userId, now)
 
   void syncRecentPlaysFromSpotify(userId, limit)
+    .then(() => {
+      runtimeState.lastCompletedAt = Date.now()
+    })
     .catch(() => {
-      // best-effort background sync, errors are intentionally ignored
+      runtimeState.lastErrorAt = Date.now()
     })
     .finally(() => {
+      runtimeState.isRunning = false
+      backgroundSyncRuntime.set(userId, runtimeState)
       backgroundSyncLocks.set(userId, Date.now())
     })
 
   return true
+}
+
+export async function getBackgroundSyncStatus(userId: string) {
+  const now = Date.now()
+  const lastRun = backgroundSyncLocks.get(userId)
+  const runtimeState =
+    backgroundSyncRuntime.get(userId) ?? {
+      isRunning: false,
+      lastTriggeredAt: null,
+      lastCompletedAt: null,
+      lastErrorAt: null,
+    }
+
+  const [latestPersisted] = await db
+    .select({
+      createdAt: spotifyPlay.createdAt,
+      playedAt: spotifyPlay.playedAt,
+    })
+    .from(spotifyPlay)
+    .where(
+      and(
+        eq(spotifyPlay.userId, userId),
+        eq(spotifyPlay.source, "spotify-recent"),
+      ),
+    )
+    .orderBy(desc(spotifyPlay.createdAt))
+    .limit(1)
+
+  const cooldownMsRemaining = lastRun
+    ? Math.max(0, BACKGROUND_SYNC_COOLDOWN_MS - (now - lastRun))
+    : 0
+
+  return {
+    isRunning: runtimeState.isRunning,
+    cooldownMsRemaining,
+    lastTriggeredAt: runtimeState.lastTriggeredAt
+      ? new Date(runtimeState.lastTriggeredAt).toISOString()
+      : null,
+    lastCompletedAt: runtimeState.lastCompletedAt
+      ? new Date(runtimeState.lastCompletedAt).toISOString()
+      : null,
+    lastErrorAt: runtimeState.lastErrorAt
+      ? new Date(runtimeState.lastErrorAt).toISOString()
+      : null,
+    lastPersistedAt: latestPersisted?.createdAt
+      ? new Date(latestPersisted.createdAt).toISOString()
+      : null,
+    lastPersistedPlayedAt: latestPersisted?.playedAt
+      ? new Date(latestPersisted.playedAt).toISOString()
+      : null,
+  }
 }
 
 async function fetchTracksByIds(userId: string, ids: string[]) {
@@ -398,7 +542,7 @@ function normalizeImportedEntries(entries: unknown[]): NormalizedEntry[] {
 
   for (const raw of entries) {
     if (isClassicPrivacyEntry(raw)) {
-      if (raw.msPlayed < 30_000) {
+      if (raw.msPlayed < MIN_PLAY_MS) {
         continue
       }
 
@@ -413,7 +557,7 @@ function normalizeImportedEntries(entries: unknown[]): NormalizedEntry[] {
 
     if (isExtendedPrivacyEntry(raw)) {
       if (
-        raw.ms_played < 30_000 ||
+        raw.ms_played < MIN_PLAY_MS ||
         !raw.master_metadata_track_name ||
         !raw.master_metadata_album_artist_name
       ) {
@@ -734,6 +878,219 @@ export async function getDayStats(userId: string, day: string, limit = 5) {
     },
     topTracks,
     topArtists,
+  }
+}
+
+export async function getTrackDrilldown(
+  userId: string,
+  options: {
+    start: Date
+    end: Date
+    trackId?: string | null
+    trackName?: string | null
+    artistName?: string | null
+  },
+) {
+  const trackFilter = options.trackId
+    ? eq(spotifyPlay.trackId, options.trackId)
+    : and(
+        options.trackName ? eq(spotifyPlay.trackName, options.trackName) : undefined,
+        options.artistName ? eq(spotifyPlay.artistName, options.artistName) : undefined,
+      )
+
+  const where = and(
+    eq(spotifyPlay.userId, userId),
+    gte(spotifyPlay.playedAt, options.start),
+    lte(spotifyPlay.playedAt, options.end),
+    trackFilter,
+  )
+
+  const [totals] = await db
+    .select({
+      totalPlays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+
+  const byDay = await db
+    .select({
+      day: sql<string>`to_char(date_trunc('day', ${spotifyPlay.playedAt}), 'YYYY-MM-DD')`,
+      plays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .groupBy(sql`date_trunc('day', ${spotifyPlay.playedAt})`)
+    .orderBy(sql`date_trunc('day', ${spotifyPlay.playedAt}) asc`)
+
+  const byHour = await db
+    .select({
+      hour: sql<number>`extract(hour from ${spotifyPlay.playedAt})::int`,
+      plays: count(),
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .groupBy(sql`extract(hour from ${spotifyPlay.playedAt})`)
+    .orderBy(sql`extract(hour from ${spotifyPlay.playedAt}) asc`)
+
+  const recent = await db
+    .select({
+      id: spotifyPlay.id,
+      playedAt: spotifyPlay.playedAt,
+      source: spotifyPlay.source,
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .orderBy(desc(spotifyPlay.playedAt))
+    .limit(25)
+
+  return {
+    totals: {
+      totalPlays: totals?.totalPlays ?? 0,
+      totalMsPlayed: totals?.totalMsPlayed ?? 0,
+    },
+    byDay,
+    byHour,
+    recent,
+  }
+}
+
+export async function getArtistDrilldown(
+  userId: string,
+  options: {
+    start: Date
+    end: Date
+    artistName: string
+    limit?: number
+  },
+) {
+  const where = and(
+    eq(spotifyPlay.userId, userId),
+    eq(spotifyPlay.artistName, options.artistName),
+    gte(spotifyPlay.playedAt, options.start),
+    lte(spotifyPlay.playedAt, options.end),
+  )
+
+  const [totals] = await db
+    .select({
+      totalPlays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+      uniqueTracks: sql<number>`count(distinct coalesce(${spotifyPlay.trackId}, ${spotifyPlay.trackName}))`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+
+  const topTracks = await db
+    .select({
+      trackId: spotifyPlay.trackId,
+      trackName: spotifyPlay.trackName,
+      plays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .groupBy(spotifyPlay.trackId, spotifyPlay.trackName)
+    .orderBy(desc(count()), desc(sql`sum(${spotifyPlay.msPlayed})`))
+    .limit(options.limit ?? 10)
+
+  const byDay = await db
+    .select({
+      day: sql<string>`to_char(date_trunc('day', ${spotifyPlay.playedAt}), 'YYYY-MM-DD')`,
+      plays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .groupBy(sql`date_trunc('day', ${spotifyPlay.playedAt})`)
+    .orderBy(sql`date_trunc('day', ${spotifyPlay.playedAt}) asc`)
+
+  return {
+    totals: {
+      totalPlays: totals?.totalPlays ?? 0,
+      totalMsPlayed: totals?.totalMsPlayed ?? 0,
+      uniqueTracks: totals?.uniqueTracks ?? 0,
+    },
+    topTracks,
+    byDay,
+  }
+}
+
+export async function getTrackSetOverview(
+  userId: string,
+  trackIds: string[],
+  options?: {
+    start?: Date
+    end?: Date
+    limit?: number
+  },
+) {
+  if (!trackIds.length) {
+    return {
+      totals: { totalPlays: 0, totalMsPlayed: 0, uniqueTracks: 0 },
+      topTracks: [] as Array<{
+        trackId: string | null
+        trackName: string
+        artistName: string
+        plays: number
+        totalMsPlayed: number
+      }>,
+      byDay: [] as Array<{ day: string; plays: number; totalMsPlayed: number }>,
+    }
+  }
+
+  const start = options?.start
+  const end = options?.end
+
+  const where = and(
+    eq(spotifyPlay.userId, userId),
+    inArray(spotifyPlay.trackId, trackIds),
+    start ? gte(spotifyPlay.playedAt, start) : undefined,
+    end ? lte(spotifyPlay.playedAt, end) : undefined,
+  )
+
+  const [totals] = await db
+    .select({
+      totalPlays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+      uniqueTracks: sql<number>`count(distinct coalesce(${spotifyPlay.trackId}, ${spotifyPlay.trackName}))`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+
+  const topTracks = await db
+    .select({
+      trackId: spotifyPlay.trackId,
+      trackName: spotifyPlay.trackName,
+      artistName: spotifyPlay.artistName,
+      plays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .groupBy(spotifyPlay.trackId, spotifyPlay.trackName, spotifyPlay.artistName)
+    .orderBy(desc(count()), desc(sql`sum(${spotifyPlay.msPlayed})`))
+    .limit(options?.limit ?? 10)
+
+  const byDay = await db
+    .select({
+      day: sql<string>`to_char(date_trunc('day', ${spotifyPlay.playedAt}), 'YYYY-MM-DD')`,
+      plays: count(),
+      totalMsPlayed: sql<number>`coalesce(sum(${spotifyPlay.msPlayed}), 0)`,
+    })
+    .from(spotifyPlay)
+    .where(where)
+    .groupBy(sql`date_trunc('day', ${spotifyPlay.playedAt})`)
+    .orderBy(sql`date_trunc('day', ${spotifyPlay.playedAt}) asc`)
+
+  return {
+    totals: {
+      totalPlays: totals?.totalPlays ?? 0,
+      totalMsPlayed: totals?.totalMsPlayed ?? 0,
+      uniqueTracks: totals?.uniqueTracks ?? 0,
+    },
+    topTracks,
+    byDay,
   }
 }
 

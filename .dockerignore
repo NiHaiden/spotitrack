@@ -1,0 +1,37 @@
+# Build artifacts
+.output
+.nitro
+.tanstack
+.wrangler
+.vinxi
+dist
+
+# Dependencies (installed in Docker)
+node_modules
+
+# Dev / local files
+.env
+.env.local
+.DS_Store
+*.local
+count.txt
+todos.json
+
+# Git
+.git
+.gitignore
+
+# Tests & tooling config
+*.test.ts
+*.test.tsx
+*.spec.ts
+vitest.config.*
+eslint.config.*
+prettier.config.*
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# External project dirs
+your_spotify

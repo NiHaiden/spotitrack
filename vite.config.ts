@@ -9,15 +9,35 @@ import { nitro } from 'nitro/vite'
 const config = defineConfig({
   plugins: [
     devtools(),
-    nitro(),
+    tanstackStart(),
+    nitro({ preset: 'node' }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
-    tanstackStart(),
     viteReact(),
   ],
+  environments: {
+    client: {
+      build: {
+        rollupOptions: {
+          onwarn(warning, warn) {
+            // Suppress node:stream externalization warnings
+            if (
+              warning.code === 'UNRESOLVED_IMPORT' &&
+              typeof warning.exporter === 'string' &&
+              warning.exporter.startsWith('node:')
+            ) {
+              return
+            }
+            warn(warning)
+          },
+          external: ['node:stream', 'node:stream/web', 'node:async_hooks'],
+        },
+      },
+    },
+  },
 })
 
 export default config

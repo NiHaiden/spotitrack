@@ -1,5 +1,13 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
+import { Fragment } from "react"
+import {
+  Link,
+  createFileRoute,
+  Outlet,
+  redirect,
+  useRouterState,
+} from "@tanstack/react-router"
 import { AppSidebar } from "@/components/app-sidebar"
+import { BackgroundSyncStatus } from "@/components/background-sync-status"
 import {
   SidebarInset,
   SidebarProvider,
@@ -30,7 +38,45 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
 })
 
+const breadcrumbLabels: Record<string, string> = {
+  dashboard: "Dashboard",
+  "top-tracks": "Top Tracks",
+  "top-artists": "Top Artists",
+  recent: "Recent Plays",
+  playlists: "Playlists",
+  settings: "Settings",
+}
+
+function segmentLabel(segment: string) {
+  return (
+    breadcrumbLabels[segment] ??
+    segment
+      .split("-")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  )
+}
+
+function buildBreadcrumbItems(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean)
+
+  if (!segments.length) {
+    return [{ href: "/dashboard", label: "Dashboard" }]
+  }
+
+  return segments.map((segment, index) => {
+    const href = `/${segments.slice(0, index + 1).join("/")}`
+    return {
+      href,
+      label: segmentLabel(segment),
+    }
+  })
+}
+
 function AuthenticatedLayout() {
+  const pathname = useRouterState({ select: state => state.location.pathname })
+  const breadcrumbs = buildBreadcrumbItems(pathname)
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -42,14 +88,35 @@ function AuthenticatedLayout() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">SpotiTrack</BreadcrumbLink>
+                  <BreadcrumbLink render={<Link to="/dashboard" />}>
+                    SpotiTrack
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
+
+                {breadcrumbs.map((item, index) => {
+                  const isLast = index === breadcrumbs.length - 1
+
+                  return (
+                    <Fragment key={item.href}>
+                      <BreadcrumbSeparator className="hidden md:block" />
+                      <BreadcrumbItem>
+                        {isLast ? (
+                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                        ) : (
+                          <BreadcrumbLink render={<Link to={item.href} />}>
+                            {item.label}
+                          </BreadcrumbLink>
+                        )}
+                      </BreadcrumbItem>
+                    </Fragment>
+                  )
+                })}
               </BreadcrumbList>
             </Breadcrumb>
+          </div>
+
+          <div className="ml-auto">
+            <BackgroundSyncStatus />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

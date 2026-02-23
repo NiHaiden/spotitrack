@@ -19,17 +19,21 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRecentRouteImport } from './routes/_authenticated/recent'
 import { Route as AuthenticatedPlaylistsRouteImport } from './routes/_authenticated/playlists'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ApiStatsTrackDetailRouteImport } from './routes/api/stats/track-detail'
 import { Route as ApiStatsTopTracksRouteImport } from './routes/api/stats/top-tracks'
 import { Route as ApiStatsTopArtistsRouteImport } from './routes/api/stats/top-artists'
 import { Route as ApiStatsRecentRouteImport } from './routes/api/stats/recent'
 import { Route as ApiStatsOverviewRouteImport } from './routes/api/stats/overview'
 import { Route as ApiStatsDayRouteImport } from './routes/api/stats/day'
+import { Route as ApiStatsArtistDetailRouteImport } from './routes/api/stats/artist-detail'
 import { Route as ApiSpotifyTopTracksRouteImport } from './routes/api/spotify/top-tracks'
 import { Route as ApiSpotifyTopArtistsRouteImport } from './routes/api/spotify/top-artists'
 import { Route as ApiSpotifySyncRecentRouteImport } from './routes/api/spotify/sync-recent'
 import { Route as ApiSpotifyRecentRouteImport } from './routes/api/spotify/recent'
 import { Route as ApiSpotifyProfileRouteImport } from './routes/api/spotify/profile'
 import { Route as ApiSpotifyPlaylistsRouteImport } from './routes/api/spotify/playlists'
+import { Route as ApiSpotifyPlaylistInsightsRouteImport } from './routes/api/spotify/playlist-insights'
+import { Route as ApiSpotifyBackgroundSyncStatusRouteImport } from './routes/api/spotify/background-sync-status'
 import { Route as ApiImportsSpotifyRouteImport } from './routes/api/imports/spotify'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -82,6 +86,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiStatsTrackDetailRoute = ApiStatsTrackDetailRouteImport.update({
+  id: '/api/stats/track-detail',
+  path: '/api/stats/track-detail',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStatsTopTracksRoute = ApiStatsTopTracksRouteImport.update({
   id: '/api/stats/top-tracks',
   path: '/api/stats/top-tracks',
@@ -105,6 +114,11 @@ const ApiStatsOverviewRoute = ApiStatsOverviewRouteImport.update({
 const ApiStatsDayRoute = ApiStatsDayRouteImport.update({
   id: '/api/stats/day',
   path: '/api/stats/day',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatsArtistDetailRoute = ApiStatsArtistDetailRouteImport.update({
+  id: '/api/stats/artist-detail',
+  path: '/api/stats/artist-detail',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSpotifyTopTracksRoute = ApiSpotifyTopTracksRouteImport.update({
@@ -137,6 +151,18 @@ const ApiSpotifyPlaylistsRoute = ApiSpotifyPlaylistsRouteImport.update({
   path: '/api/spotify/playlists',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSpotifyPlaylistInsightsRoute =
+  ApiSpotifyPlaylistInsightsRouteImport.update({
+    id: '/api/spotify/playlist-insights',
+    path: '/api/spotify/playlist-insights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiSpotifyBackgroundSyncStatusRoute =
+  ApiSpotifyBackgroundSyncStatusRouteImport.update({
+    id: '/api/spotify/background-sync-status',
+    path: '/api/spotify/background-sync-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiImportsSpotifyRoute = ApiImportsSpotifyRouteImport.update({
   id: '/spotify',
   path: '/spotify',
@@ -160,17 +186,21 @@ export interface FileRoutesByFullPath {
   '/api/imports': typeof ApiImportsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/imports/spotify': typeof ApiImportsSpotifyRoute
+  '/api/spotify/background-sync-status': typeof ApiSpotifyBackgroundSyncStatusRoute
+  '/api/spotify/playlist-insights': typeof ApiSpotifyPlaylistInsightsRoute
   '/api/spotify/playlists': typeof ApiSpotifyPlaylistsRoute
   '/api/spotify/profile': typeof ApiSpotifyProfileRoute
   '/api/spotify/recent': typeof ApiSpotifyRecentRoute
   '/api/spotify/sync-recent': typeof ApiSpotifySyncRecentRoute
   '/api/spotify/top-artists': typeof ApiSpotifyTopArtistsRoute
   '/api/spotify/top-tracks': typeof ApiSpotifyTopTracksRoute
+  '/api/stats/artist-detail': typeof ApiStatsArtistDetailRoute
   '/api/stats/day': typeof ApiStatsDayRoute
   '/api/stats/overview': typeof ApiStatsOverviewRoute
   '/api/stats/recent': typeof ApiStatsRecentRoute
   '/api/stats/top-artists': typeof ApiStatsTopArtistsRoute
   '/api/stats/top-tracks': typeof ApiStatsTopTracksRoute
+  '/api/stats/track-detail': typeof ApiStatsTrackDetailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -184,17 +214,21 @@ export interface FileRoutesByTo {
   '/api/imports': typeof ApiImportsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/imports/spotify': typeof ApiImportsSpotifyRoute
+  '/api/spotify/background-sync-status': typeof ApiSpotifyBackgroundSyncStatusRoute
+  '/api/spotify/playlist-insights': typeof ApiSpotifyPlaylistInsightsRoute
   '/api/spotify/playlists': typeof ApiSpotifyPlaylistsRoute
   '/api/spotify/profile': typeof ApiSpotifyProfileRoute
   '/api/spotify/recent': typeof ApiSpotifyRecentRoute
   '/api/spotify/sync-recent': typeof ApiSpotifySyncRecentRoute
   '/api/spotify/top-artists': typeof ApiSpotifyTopArtistsRoute
   '/api/spotify/top-tracks': typeof ApiSpotifyTopTracksRoute
+  '/api/stats/artist-detail': typeof ApiStatsArtistDetailRoute
   '/api/stats/day': typeof ApiStatsDayRoute
   '/api/stats/overview': typeof ApiStatsOverviewRoute
   '/api/stats/recent': typeof ApiStatsRecentRoute
   '/api/stats/top-artists': typeof ApiStatsTopArtistsRoute
   '/api/stats/top-tracks': typeof ApiStatsTopTracksRoute
+  '/api/stats/track-detail': typeof ApiStatsTrackDetailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -210,17 +244,21 @@ export interface FileRoutesById {
   '/api/imports': typeof ApiImportsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/imports/spotify': typeof ApiImportsSpotifyRoute
+  '/api/spotify/background-sync-status': typeof ApiSpotifyBackgroundSyncStatusRoute
+  '/api/spotify/playlist-insights': typeof ApiSpotifyPlaylistInsightsRoute
   '/api/spotify/playlists': typeof ApiSpotifyPlaylistsRoute
   '/api/spotify/profile': typeof ApiSpotifyProfileRoute
   '/api/spotify/recent': typeof ApiSpotifyRecentRoute
   '/api/spotify/sync-recent': typeof ApiSpotifySyncRecentRoute
   '/api/spotify/top-artists': typeof ApiSpotifyTopArtistsRoute
   '/api/spotify/top-tracks': typeof ApiSpotifyTopTracksRoute
+  '/api/stats/artist-detail': typeof ApiStatsArtistDetailRoute
   '/api/stats/day': typeof ApiStatsDayRoute
   '/api/stats/overview': typeof ApiStatsOverviewRoute
   '/api/stats/recent': typeof ApiStatsRecentRoute
   '/api/stats/top-artists': typeof ApiStatsTopArtistsRoute
   '/api/stats/top-tracks': typeof ApiStatsTopTracksRoute
+  '/api/stats/track-detail': typeof ApiStatsTrackDetailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -236,17 +274,21 @@ export interface FileRouteTypes {
     | '/api/imports'
     | '/api/auth/$'
     | '/api/imports/spotify'
+    | '/api/spotify/background-sync-status'
+    | '/api/spotify/playlist-insights'
     | '/api/spotify/playlists'
     | '/api/spotify/profile'
     | '/api/spotify/recent'
     | '/api/spotify/sync-recent'
     | '/api/spotify/top-artists'
     | '/api/spotify/top-tracks'
+    | '/api/stats/artist-detail'
     | '/api/stats/day'
     | '/api/stats/overview'
     | '/api/stats/recent'
     | '/api/stats/top-artists'
     | '/api/stats/top-tracks'
+    | '/api/stats/track-detail'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -260,17 +302,21 @@ export interface FileRouteTypes {
     | '/api/imports'
     | '/api/auth/$'
     | '/api/imports/spotify'
+    | '/api/spotify/background-sync-status'
+    | '/api/spotify/playlist-insights'
     | '/api/spotify/playlists'
     | '/api/spotify/profile'
     | '/api/spotify/recent'
     | '/api/spotify/sync-recent'
     | '/api/spotify/top-artists'
     | '/api/spotify/top-tracks'
+    | '/api/stats/artist-detail'
     | '/api/stats/day'
     | '/api/stats/overview'
     | '/api/stats/recent'
     | '/api/stats/top-artists'
     | '/api/stats/top-tracks'
+    | '/api/stats/track-detail'
   id:
     | '__root__'
     | '/'
@@ -285,17 +331,21 @@ export interface FileRouteTypes {
     | '/api/imports'
     | '/api/auth/$'
     | '/api/imports/spotify'
+    | '/api/spotify/background-sync-status'
+    | '/api/spotify/playlist-insights'
     | '/api/spotify/playlists'
     | '/api/spotify/profile'
     | '/api/spotify/recent'
     | '/api/spotify/sync-recent'
     | '/api/spotify/top-artists'
     | '/api/spotify/top-tracks'
+    | '/api/stats/artist-detail'
     | '/api/stats/day'
     | '/api/stats/overview'
     | '/api/stats/recent'
     | '/api/stats/top-artists'
     | '/api/stats/top-tracks'
+    | '/api/stats/track-detail'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -304,17 +354,21 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiImportsRoute: typeof ApiImportsRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiSpotifyBackgroundSyncStatusRoute: typeof ApiSpotifyBackgroundSyncStatusRoute
+  ApiSpotifyPlaylistInsightsRoute: typeof ApiSpotifyPlaylistInsightsRoute
   ApiSpotifyPlaylistsRoute: typeof ApiSpotifyPlaylistsRoute
   ApiSpotifyProfileRoute: typeof ApiSpotifyProfileRoute
   ApiSpotifyRecentRoute: typeof ApiSpotifyRecentRoute
   ApiSpotifySyncRecentRoute: typeof ApiSpotifySyncRecentRoute
   ApiSpotifyTopArtistsRoute: typeof ApiSpotifyTopArtistsRoute
   ApiSpotifyTopTracksRoute: typeof ApiSpotifyTopTracksRoute
+  ApiStatsArtistDetailRoute: typeof ApiStatsArtistDetailRoute
   ApiStatsDayRoute: typeof ApiStatsDayRoute
   ApiStatsOverviewRoute: typeof ApiStatsOverviewRoute
   ApiStatsRecentRoute: typeof ApiStatsRecentRoute
   ApiStatsTopArtistsRoute: typeof ApiStatsTopArtistsRoute
   ApiStatsTopTracksRoute: typeof ApiStatsTopTracksRoute
+  ApiStatsTrackDetailRoute: typeof ApiStatsTrackDetailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -389,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/stats/track-detail': {
+      id: '/api/stats/track-detail'
+      path: '/api/stats/track-detail'
+      fullPath: '/api/stats/track-detail'
+      preLoaderRoute: typeof ApiStatsTrackDetailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stats/top-tracks': {
       id: '/api/stats/top-tracks'
       path: '/api/stats/top-tracks'
@@ -422,6 +483,13 @@ declare module '@tanstack/react-router' {
       path: '/api/stats/day'
       fullPath: '/api/stats/day'
       preLoaderRoute: typeof ApiStatsDayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stats/artist-detail': {
+      id: '/api/stats/artist-detail'
+      path: '/api/stats/artist-detail'
+      fullPath: '/api/stats/artist-detail'
+      preLoaderRoute: typeof ApiStatsArtistDetailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/spotify/top-tracks': {
@@ -464,6 +532,20 @@ declare module '@tanstack/react-router' {
       path: '/api/spotify/playlists'
       fullPath: '/api/spotify/playlists'
       preLoaderRoute: typeof ApiSpotifyPlaylistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/spotify/playlist-insights': {
+      id: '/api/spotify/playlist-insights'
+      path: '/api/spotify/playlist-insights'
+      fullPath: '/api/spotify/playlist-insights'
+      preLoaderRoute: typeof ApiSpotifyPlaylistInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/spotify/background-sync-status': {
+      id: '/api/spotify/background-sync-status'
+      path: '/api/spotify/background-sync-status'
+      fullPath: '/api/spotify/background-sync-status'
+      preLoaderRoute: typeof ApiSpotifyBackgroundSyncStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/imports/spotify': {
@@ -523,17 +605,21 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiImportsRoute: ApiImportsRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiSpotifyBackgroundSyncStatusRoute: ApiSpotifyBackgroundSyncStatusRoute,
+  ApiSpotifyPlaylistInsightsRoute: ApiSpotifyPlaylistInsightsRoute,
   ApiSpotifyPlaylistsRoute: ApiSpotifyPlaylistsRoute,
   ApiSpotifyProfileRoute: ApiSpotifyProfileRoute,
   ApiSpotifyRecentRoute: ApiSpotifyRecentRoute,
   ApiSpotifySyncRecentRoute: ApiSpotifySyncRecentRoute,
   ApiSpotifyTopArtistsRoute: ApiSpotifyTopArtistsRoute,
   ApiSpotifyTopTracksRoute: ApiSpotifyTopTracksRoute,
+  ApiStatsArtistDetailRoute: ApiStatsArtistDetailRoute,
   ApiStatsDayRoute: ApiStatsDayRoute,
   ApiStatsOverviewRoute: ApiStatsOverviewRoute,
   ApiStatsRecentRoute: ApiStatsRecentRoute,
   ApiStatsTopArtistsRoute: ApiStatsTopArtistsRoute,
   ApiStatsTopTracksRoute: ApiStatsTopTracksRoute,
+  ApiStatsTrackDetailRoute: ApiStatsTrackDetailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

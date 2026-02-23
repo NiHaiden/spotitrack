@@ -90,10 +90,100 @@ export type DayStatsResponse = {
   }>
 }
 
+export type TrackDetailResponse = {
+  totals: {
+    totalPlays: number
+    totalMsPlayed: number
+  }
+  byDay: Array<{
+    day: string
+    plays: number
+    totalMsPlayed: number
+  }>
+  byHour: Array<{
+    hour: number
+    plays: number
+  }>
+  recent: Array<{
+    id: string
+    playedAt: string
+    source: string
+  }>
+}
+
+export type ArtistDetailResponse = {
+  totals: {
+    totalPlays: number
+    totalMsPlayed: number
+    uniqueTracks: number
+  }
+  topTracks: Array<{
+    trackId: string | null
+    trackName: string
+    plays: number
+    totalMsPlayed: number
+  }>
+  byDay: Array<{
+    day: string
+    plays: number
+    totalMsPlayed: number
+  }>
+}
+
+export type PlaylistInsightsResponse = {
+  playlist: {
+    id: string
+    name: string
+    imageUrl: string | null
+    ownerName: string
+    trackCount: number
+  }
+  tracked: {
+    totals: {
+      totalPlays: number
+      totalMsPlayed: number
+      uniqueTracks: number
+    }
+    topTracks: Array<{
+      trackId: string | null
+      trackName: string
+      artistName: string
+      plays: number
+      totalMsPlayed: number
+    }>
+    byDay: Array<{
+      day: string
+      plays: number
+      totalMsPlayed: number
+    }>
+  }
+  coverage: {
+    trackedTracks: number
+    totalTracks: number
+  }
+}
+
+export type BackgroundSyncStatusResponse = {
+  isRunning: boolean
+  cooldownMsRemaining: number
+  lastTriggeredAt: string | null
+  lastCompletedAt: string | null
+  lastErrorAt: string | null
+  lastPersistedAt: string | null
+  lastPersistedPlayedAt: string | null
+}
+
 function buildStatsParams(range: StatsRange, limit: number) {
   const start = statsRangeStart(range).toISOString()
   const end = new Date().toISOString()
   return `start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&limit=${limit}`
+}
+
+function rangeDates(range: StatsRange) {
+  return {
+    start: statsRangeStart(range).toISOString(),
+    end: new Date().toISOString(),
+  }
 }
 
 export const statsOverviewQueryOptions = (range: StatsRange = "30d") =>
@@ -152,10 +242,96 @@ export const dayStatsQueryOptions = (day: string | null, limit = 5) =>
     staleTime: 30_000,
   })
 
+export const trackDetailQueryOptions = (
+  range: StatsRange,
+  params: {
+    trackId?: string | null
+    trackName?: string | null
+    artistName?: string | null
+  } | null,
+) =>
+  queryOptions({
+    queryKey: ["stats", "track-detail", range, params],
+    queryFn: () => {
+      if (!params) {
+        throw new Error("Track params are required")
+      }
+
+      const { start, end } = rangeDates(range)
+      const search = new URLSearchParams({
+        start,
+        end,
+      })
+
+      if (params.trackId) {
+        search.set("trackId", params.trackId)
+      }
+
+      if (params.trackName) {
+        search.set("trackName", params.trackName)
+      }
+
+      if (params.artistName) {
+        search.set("artistName", params.artistName)
+      }
+
+      return apiFetch<TrackDetailResponse>(`/api/stats/track-detail?${search.toString()}`)
+    },
+    enabled: Boolean(params),
+    staleTime: 30_000,
+  })
+
+export const artistDetailQueryOptions = (
+  range: StatsRange,
+  artistName: string | null,
+) =>
+  queryOptions({
+    queryKey: ["stats", "artist-detail", range, artistName],
+    queryFn: () => {
+      if (!artistName) {
+        throw new Error("artistName is required")
+      }
+
+      const { start, end } = rangeDates(range)
+      return apiFetch<ArtistDetailResponse>(
+        `/api/stats/artist-detail?artistName=${encodeURIComponent(artistName)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+      )
+    },
+    enabled: Boolean(artistName),
+    staleTime: 30_000,
+  })
+
 export const playlistsQueryOptions = (limit = 50) =>
   queryOptions({
     queryKey: ["spotify", "playlists", limit],
-    queryFn: () => apiFetch<PlaylistResponse>(`/api/spotify/playlists?limit=${limit}`),
+    queryFn: () =>
+      apiFetch<PlaylistResponse>(`/api/spotify/playlists?limit=${limit}`),
     staleTime: 60_000,
     refetchInterval: 120_000,
+  })
+
+export const backgroundSyncStatusQueryOptions = () =>
+  queryOptions({
+    queryKey: ["spotify", "background-sync-status"],
+    queryFn: () =>
+      apiFetch<BackgroundSyncStatusResponse>(
+        "/api/spotify/background-sync-status",
+      ),
+    staleTime: 5_000,
+    refetchInterval: 10_000,
+  })
+
+export const playlistInsightsQueryOptions = (playlistId: string | null) =>
+  queryOptions({
+    queryKey: ["spotify", "playlist-insights", playlistId],
+    queryFn: () => {
+      if (!playlistId) {
+        throw new Error("playlistId is required")
+      }
+      return apiFetch<PlaylistInsightsResponse>(
+        `/api/spotify/playlist-insights?playlistId=${encodeURIComponent(playlistId)}`,
+      )
+    },
+    enabled: Boolean(playlistId),
+    staleTime: 45_000,
   })
