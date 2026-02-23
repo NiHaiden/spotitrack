@@ -4,8 +4,10 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router"
-import type { QueryClient } from "@tanstack/react-query"
 import appCss from "../styles.css?url"
+import type { QueryClient } from "@tanstack/react-query"
+import { ThemeProvider } from "@/components/theme-provider"
+import { getThemeServerFn } from "@/lib/theme"
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -28,6 +30,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
+  loader: () => getThemeServerFn(),
   notFoundComponent: () => (
     <div className="p-6 text-sm text-muted-foreground">Page not found.</div>
   ),
@@ -40,19 +43,15 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const theme = Route.useLoaderData()
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className={theme} lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              '(function(){try{var t=localStorage.getItem("spotitrack-theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}})()',
-          }}
-        />
       </head>
       <body>
-        {children}
+        <ThemeProvider theme={theme}>{children}</ThemeProvider>
         <Scripts />
       </body>
     </html>

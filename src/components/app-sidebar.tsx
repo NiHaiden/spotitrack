@@ -1,6 +1,14 @@
 import * as React from "react"
 import { Link, useRouterState } from "@tanstack/react-router"
 
+import {
+  IconBrandSpotify,
+  IconChartBar,
+  IconClock,
+  IconMusic,
+  IconPlaylist,
+  IconUsers,
+} from "@tabler/icons-react"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -16,15 +24,6 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
-import {
-  IconChartBar,
-  IconMusic,
-  IconUsers,
-  IconClock,
-  IconPlaylist,
-  IconSettings,
-  IconBrandSpotify,
-} from "@tabler/icons-react"
 
 const navMain = [
   {
@@ -51,14 +50,6 @@ const navMain = [
     title: "Playlists",
     url: "/playlists",
     icon: <IconPlaylist />,
-  },
-]
-
-const navSecondary = [
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: <IconSettings />,
   },
 ]
 
@@ -98,23 +89,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    isActive={isActive(item.url)}
-                    render={<Link to={item.url} />}
-                  >
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navSecondary.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     isActive={isActive(item.url)}

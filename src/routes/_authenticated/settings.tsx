@@ -1,5 +1,17 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router"
 import {
+  IconBrandSpotify,
+  IconClock,
+  IconLogout,
+  IconMoon,
+  IconMusic,
+  IconPlaylist,
+  IconRefresh,
+  IconShieldCheck,
+  IconSun,
+  IconUser,
+} from "@tabler/icons-react"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -12,20 +24,8 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { signOut, signIn, useSession } from "@/lib/auth-client"
-import { useTheme } from "@/hooks/use-theme"
-import {
-  IconBrandSpotify,
-  IconLogout,
-  IconRefresh,
-  IconShieldCheck,
-  IconMusic,
-  IconPlaylist,
-  IconClock,
-  IconUser,
-  IconMoon,
-  IconSun,
-} from "@tabler/icons-react"
+import { signIn, signOut, useSession } from "@/lib/auth-client"
+import { useTheme } from "@/components/theme-provider"
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -99,6 +99,7 @@ function SettingsPage() {
               <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
               <AvatarFallback className="text-lg">
                 {user?.name
+                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                   ?.split(" ")
                   .map((n) => n[0])
                   .join("")
