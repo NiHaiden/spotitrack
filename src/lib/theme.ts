@@ -9,7 +9,7 @@ export const getThemeServerFn = createServerFn().handler(
 )
 
 export const setThemeServerFn = createServerFn({ method: "POST" })
-  .validator((data: unknown): Theme => {
+  .inputValidator((data: unknown): Theme => {
     if (data === "light" || data === "dark") return data
     throw new Error("Invalid theme value")
   })
