@@ -1,6 +1,9 @@
 # Build stage
 FROM node:22-alpine AS builder
 
+ARG APP_VERSION=dev
+ARG GIT_HASH=unknown
+
 WORKDIR /app
 
 # Install pnpm
@@ -15,8 +18,10 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build the application
+# Bake version into the client bundle via Vite env vars
 ENV NODE_ENV=production
+ENV VITE_APP_VERSION=$APP_VERSION
+ENV VITE_GIT_HASH=$GIT_HASH
 RUN pnpm build
 
 # Production stage

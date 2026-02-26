@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { signIn, signOut, useSession } from "@/lib/auth-client"
 import { useTheme } from "@/components/theme-provider"
+import { formatVersion } from "@/lib/version"
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -78,11 +79,19 @@ function SettingsPage() {
 
   return (
     <div className="w-full space-y-6 pt-4">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground">
-          Manage your account and preferences.
-        </p>
+      <div className="flex items-center gap-3">
+        <img src="/icon.svg" alt="SpotiTrack" className="size-10" />
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+            <Badge variant="outline" className="font-mono text-xs">
+              {formatVersion()}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground">
+            Manage your account and preferences.
+          </p>
+        </div>
       </div>
 
       {/* Account */}
