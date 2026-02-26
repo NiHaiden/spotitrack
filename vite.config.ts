@@ -5,12 +5,18 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 const config = defineConfig({
   plugins: [
     devtools(),
     tanstackStart(),
-    nitro({ preset: 'node' }),
+    nitro({
+      preset: 'node',
+      plugins: [`${__dirname}server/plugins/sync.ts`],
+    }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
