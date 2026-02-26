@@ -16,7 +16,10 @@ export function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
+      "cache-control": "no-store, max-age=0",
       "content-type": "application/json",
+      pragma: "no-cache",
+      "x-content-type-options": "nosniff",
     },
   })
 }
