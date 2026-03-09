@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSession, signOut } from "@/lib/auth-client"
-import { IconSelector, IconSettings, IconLogout } from "@tabler/icons-react"
+import { IconSelector, IconLogout } from "@tabler/icons-react"
 import { useRouter } from "@tanstack/react-router"
 
 export function NavUser() {
@@ -107,15 +107,6 @@ export function NavUser() {
                   </div>
                 </div>
               </DropdownMenuLabel>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                onClick={() => router.navigate({ to: "/settings" })}
-              >
-                <IconSettings />
-                Settings
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem

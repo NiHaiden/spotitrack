@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
   IconClock,
+  IconMusic,
   IconPlayerPlay,
-  IconRefresh,
   IconUsers,
 } from "@tabler/icons-react"
 import {
@@ -14,17 +14,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { StatsRangeSelector } from "@/components/stats-range-selector"
+import { BackgroundSyncStatus } from "@/components/background-sync-status"
 import { apiFetch, formatDurationShort, formatPlayedAt } from "@/lib/spotify-client"
 import {
   dayStatsQueryOptions,
@@ -32,6 +25,7 @@ import {
   statsOverviewQueryOptions,
 } from "@/lib/spotify-query-options"
 import { StatsRange } from "@/lib/stats-range"
+import { Link } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   loader: ({ context }) =>
@@ -44,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 const listeningChartConfig = {
   hours: {
-    label: "Hours listened",
+    label: "Hours",
     color: "var(--chart-1)",
   },
 } satisfies ChartConfig
@@ -56,33 +50,9 @@ const distributionChartConfig = {
   },
 } satisfies ChartConfig
 
-function StatCard({
-  title,
-  value,
-  description,
-  icon,
-}: {
-  title: string
-  value: string
-  description: string
-  icon: React.ReactNode
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <span className="text-muted-foreground">{icon}</span>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
 function DashboardPage() {
   const queryClient = useQueryClient()
+  const { user } = Route.useRouteContext()
   const [range, setRange] = useState<StatsRange>("30d")
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
@@ -137,260 +107,314 @@ function DashboardPage() {
     const map = new Map(byHour.map(item => [item.hour, item.plays]))
     return Array.from({ length: 24 }, (_, hour) => ({
       hour,
-      label: `${String(hour).padStart(2, "0")}:00`,
+      label: String(hour),
       plays: map.get(hour) ?? 0,
     }))
   }, [byHour])
 
   const topArtist = topArtists[0]
+  const firstName = user?.name?.split(" ")[0] ?? "there"
 
   return (
-    <div className="space-y-6 pt-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
-          <p className="text-muted-foreground">
-            Track your listening activity and drill down into each day.
+    <div className="space-y-7">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[34px]">
+            Welcome back, {firstName}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Your listening activity and insights
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <StatsRangeSelector value={range} onChange={setRange} />
-          <Button
-            variant="outline"
-            onClick={() => syncMutation.mutate()}
-            disabled={syncMutation.isPending}
-          >
-            <IconRefresh className="mr-2 size-4" />
-            {syncMutation.isPending ? "Syncing..." : "Sync now"}
-          </Button>
+          <BackgroundSyncStatus />
         </div>
       </div>
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stat cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Songs listened"
-          value={loading ? "—" : String(totals?.totalPlays ?? 0)}
+          label="SONGS LISTENED"
+          value={loading ? "—" : String(totals?.totalPlays ?? 0).toLocaleString()}
           description="Total tracked plays"
           icon={<IconPlayerPlay className="size-4" />}
         />
         <StatCard
-          title="Time listened"
+          label="TIME LISTENED"
           value={loading ? "—" : formatDurationShort(totals?.totalMsPlayed ?? 0)}
           description="Total listening time"
           icon={<IconClock className="size-4" />}
         />
         <StatCard
-          title="Artists listened"
+          label="ARTISTS"
           value={loading ? "—" : String(totals?.uniqueArtists ?? 0)}
           description="Different artists"
           icon={<IconUsers className="size-4" />}
         />
         <StatCard
-          title="Unique tracks"
+          label="UNIQUE TRACKS"
           value={loading ? "—" : String(totals?.uniqueTracks ?? 0)}
           description="Different songs"
-          icon={<IconUsers className="size-4" />}
+          icon={<IconMusic className="size-4" />}
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-9">
-          <Card>
-            <CardHeader>
-              <CardTitle>Time listened over time</CardTitle>
-              <CardDescription>Daily listening hours</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-[260px] w-full" />
-              ) : listeningTimeline.length ? (
-                <ChartContainer
-                  config={listeningChartConfig}
-                  className="h-[260px] w-full"
-                >
-                  <LineChart data={listeningTimeline}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} width={40} />
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value) => `${value}h`}
-                          labelFormatter={(_, payload) => {
-                            const raw = payload?.[0]?.payload as
-                              | { day?: string }
-                              | undefined
-                            return raw?.day ?? ""
-                          }}
-                        />
-                      }
-                    />
-                    <Line
-                      dataKey="hours"
-                      stroke="var(--color-hours)"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 5 }}
-                      onClick={(point) => {
-                        const day = (point as { payload?: { day?: string } })?.payload?.day
-                        if (day) setSelectedDay(day)
+      {/* Charts + sidebar */}
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        {/* Listening over time */}
+        <div className="min-w-0 rounded-2xl border border-border bg-card p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">Listening over time</h3>
+              <p className="text-sm text-muted-foreground">Daily hours · last 14 days</p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="size-2 rounded-full bg-primary" />
+              Hours
+            </div>
+          </div>
+          {loading ? (
+            <Skeleton className="h-[400px] w-full" />
+          ) : listeningTimeline.length ? (
+            <ChartContainer config={listeningChartConfig} className="h-[400px] w-full overflow-hidden">
+              <AreaChart data={listeningTimeline}>
+                <defs>
+                  <linearGradient id="fillHours" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-hours)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--color-hours)" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} strokeOpacity={0.08} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "currentColor", opacity: 0.4, fontSize: 12 }}
+                  tickFormatter={(v) => {
+                    const parts = String(v).split("-")
+                    return parts.length === 2 ? `${parts[0].replace(/^0/, "")}/${parts[1].replace(/^0/, "")}` : v
+                  }}
+                />
+                <YAxis tickLine={false} axisLine={false} width={32} tick={{ fill: "currentColor", opacity: 0.4, fontSize: 12 }} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) => `${value}h`}
+                      labelFormatter={(_, payload) => {
+                        const raw = payload?.[0]?.payload as { day?: string } | undefined
+                        return raw?.day ?? ""
                       }}
                     />
-                  </LineChart>
-                </ChartContainer>
-              ) : (
-                <p className="text-sm text-muted-foreground">No listening data yet.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Listening distribution over day</CardTitle>
-              <CardDescription>When you usually listen</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-[260px] w-full" />
-              ) : (
-                <ChartContainer
-                  config={distributionChartConfig}
-                  className="h-[260px] w-full"
-                >
-                  <BarChart data={hourlyDistribution}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} width={32} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="plays" fill="var(--color-plays)" radius={3} />
-                  </BarChart>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
+                  }
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="var(--color-hours)"
+                  strokeWidth={2}
+                  fill="url(#fillHours)"
+                  dot={{ r: 2, fill: "var(--color-hours)" }}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  onClick={(point) => {
+                    const day = (point as { payload?: { day?: string } })?.payload?.day
+                    if (day) setSelectedDay(day)
+                  }}
+                />
+              </AreaChart>
+            </ChartContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground">No listening data yet.</p>
+          )}
         </div>
 
-        <div className="space-y-4 lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Best artist</CardTitle>
-              <CardDescription>Your top artist in this period</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-40 w-full" />
-              ) : topArtist ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="size-28 rounded-md">
-                      <AvatarImage
-                        src={topArtist.imageUrl ?? undefined}
-                        alt={topArtist.artistName}
-                      />
-                      <AvatarFallback>
-                        {topArtist.artistName
-                          .split(" ")
-                          .map(v => v[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 space-y-1">
-                      <p className="truncate font-semibold">{topArtist.artistName}</p>
-                      <p className="text-xs text-muted-foreground">{topArtist.plays} songs listened</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDurationShort(topArtist.totalMsPlayed)} listened
+        {/* Right sidebar cards */}
+        <div className="flex flex-col gap-4">
+          {/* Top Artist card */}
+          <div className="flex-1 rounded-2xl border border-border bg-card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                TOP ARTIST
+              </p>
+              <Link to="/top-artists" className="text-sm font-medium text-primary hover:underline">View all</Link>
+            </div>
+            {loading ? (
+              <Skeleton className="h-28 w-full" />
+            ) : topArtist ? (
+              <>
+                <Link
+                  to="/top-artists/$artistName"
+                  params={{ artistName: encodeURIComponent(topArtist.artistName) }}
+                  className="flex items-center gap-4 group"
+                >
+                  <Avatar className="size-14 rounded-full ring-2 ring-primary/20">
+                    <AvatarImage src={topArtist.imageUrl ?? undefined} alt={topArtist.artistName} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">
+                      {topArtist.artistName.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-xl font-bold group-hover:text-primary transition-colors">{topArtist.artistName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {topArtist.plays} songs · {formatDurationShort(topArtist.totalMsPlayed)}
+                    </p>
+                  </div>
+                </Link>
+                {activeDay && dayDetailsQuery.data ? (
+                  <div className="mt-4 flex items-center justify-between border-t border-[oklch(0.17_0_0)] pt-4">
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                        TODAY · {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {formatDurationShort(dayDetailsQuery.data.totals.totalMsPlayed)} listened
                       </p>
                     </div>
+                    <p className="text-lg font-bold text-primary">
+                      {dayDetailsQuery.data.totals.totalPlays} plays
+                    </p>
                   </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No artist data yet.</p>
-              )}
-            </CardContent>
-          </Card>
+                ) : null}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No artist data yet.</p>
+            )}
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Selected day</CardTitle>
-              <CardDescription>{activeDay ?? "No day selected"}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {!activeDay ? (
-                <p className="text-sm text-muted-foreground">Click a data point in the timeline.</p>
-              ) : dayDetailsQuery.isPending ? (
-                <Skeleton className="h-28 w-full" />
-              ) : dayDetailsQuery.data ? (
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <span className="font-semibold">{dayDetailsQuery.data.totals.totalPlays}</span> plays •{" "}
-                    <span className="font-semibold">
-                      {formatDurationShort(dayDetailsQuery.data.totals.totalMsPlayed)}
+          {/* Top Today card */}
+          <div className="flex-1 rounded-2xl border border-border bg-card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                TOP TODAY
+              </p>
+              <Link to="/top-tracks" className="text-sm font-medium text-primary hover:underline">View all</Link>
+            </div>
+            {dayDetailsQuery.isPending ? (
+              <Skeleton className="h-24 w-full" />
+            ) : dayDetailsQuery.data?.topTracks.length ? (
+              <div className="space-y-3">
+                {dayDetailsQuery.data.topTracks.slice(0, 3).map((track, index) => (
+                  <Link
+                    key={`${track.trackName}-${index}`}
+                    to="/top-tracks/$trackName"
+                    params={{ trackName: encodeURIComponent(track.trackName) }}
+                    search={{ artist: track.artistName }}
+                    className="flex items-start gap-3 group"
+                  >
+                    <span className="mt-0.5 text-sm font-bold tabular-nums text-primary">
+                      {String(index + 1).padStart(2, "0")}
                     </span>
-                  </p>
-                  <div className="space-y-2">
-                    {dayDetailsQuery.data.topTracks.slice(0, 3).map((track, index) => (
-                      <div key={`${track.trackName}-${index}`}>
-                        <p className="truncate font-medium">{track.trackName}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {track.artistName} • {track.plays}×
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No details available.</p>
-              )}
-            </CardContent>
-          </Card>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium group-hover:text-primary transition-colors">{track.trackName}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {track.artistName} · {track.plays} plays
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No plays today.</p>
+            )}
+          </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your history</CardTitle>
-          <CardDescription>Most recent tracked listens</CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Bottom row: hourly distribution + recent history */}
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        {/* When you listen */}
+        <div className="min-w-0 rounded-2xl border border-border bg-card p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold">When you listen</h3>
+            <p className="text-sm text-muted-foreground">Listening distribution by hour</p>
+          </div>
           {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
+            <Skeleton className="h-[400px] w-full" />
+          ) : (
+            <ChartContainer config={distributionChartConfig} className="h-[400px] w-full overflow-hidden">
+              <BarChart data={hourlyDistribution}>
+                <CartesianGrid vertical={false} strokeOpacity={0.08} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "currentColor", opacity: 0.4, fontSize: 11 }}
+                />
+                <YAxis tickLine={false} axisLine={false} width={28} tick={{ fill: "currentColor", opacity: 0.4, fontSize: 11 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="plays" fill="var(--color-plays)" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          )}
+        </div>
+
+        {/* Recent history */}
+        <div className="rounded-2xl border border-border bg-card p-6 self-stretch flex flex-col">
+          <div className="mb-4 flex items-center justify-between shrink-0">
+            <div>
+              <h3 className="text-lg font-semibold">Recent history</h3>
+              <p className="text-sm text-muted-foreground">Latest tracked listens</p>
+            </div>
+            <Link to="/recent" className="text-sm font-medium text-primary hover:underline">
+              View all
+            </Link>
+          </div>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
           ) : recent.length ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-xs text-muted-foreground">
-                    <th className="pb-2 pr-4 font-medium">Track / Artist</th>
-                    <th className="pb-2 pr-4 font-medium">Source</th>
-                    <th className="pb-2 font-medium">Listened at</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map(item => (
-                    <tr key={item.id} className="border-b last:border-0">
-                      <td className="py-2 pr-4">
-                        <p className="truncate font-medium">{item.trackName}</p>
-                        <p className="truncate text-xs text-muted-foreground">{item.artistName}</p>
-                      </td>
-                      <td className="py-2 pr-4 text-xs text-muted-foreground">{item.source}</td>
-                      <td className="py-2 text-xs text-muted-foreground">{formatPlayedAt(item.playedAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-1">
+              {recent.slice(0, 6).map(item => (
+                <div key={item.id} className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/50">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <IconMusic className="size-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.trackName}</p>
+                    <p className="truncate text-xs text-muted-foreground">{item.artistName}</p>
+                  </div>
+                  <p className="shrink-0 text-xs text-muted-foreground">
+                    {new Date(item.playedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No history yet. Sync from Spotify first.</p>
+            <p className="text-sm text-muted-foreground">No history yet.</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+  description,
+  icon,
+}: {
+  label: string
+  value: string
+  description: string
+  icon: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-primary/80">
+          {label}
+        </p>
+        <span className="text-muted-foreground/40">{icon}</span>
+      </div>
+      <p className="mt-2 text-3xl font-bold tracking-tight">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
     </div>
   )
 }

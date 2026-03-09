@@ -2,11 +2,11 @@ import * as React from "react"
 import { Link, useRouterState } from "@tanstack/react-router"
 
 import {
-  IconBrandSpotify,
   IconChartBar,
   IconClock,
   IconMusic,
   IconPlaylist,
+  IconSettings,
   IconUsers,
 } from "@tabler/icons-react"
 import { NavUser } from "@/components/nav-user"
@@ -22,34 +22,33 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
 
 const navMain = [
   {
     title: "Dashboard",
     url: "/dashboard",
-    icon: <IconChartBar />,
+    icon: <IconChartBar className="size-5" />,
   },
   {
     title: "Top Tracks",
     url: "/top-tracks",
-    icon: <IconMusic />,
+    icon: <IconMusic className="size-5" />,
   },
   {
     title: "Top Artists",
     url: "/top-artists",
-    icon: <IconUsers />,
+    icon: <IconUsers className="size-5" />,
   },
   {
     title: "Recent Plays",
     url: "/recent",
-    icon: <IconClock />,
+    icon: <IconClock className="size-5" />,
   },
   {
     title: "Playlists",
     url: "/playlists",
-    icon: <IconPlaylist />,
+    icon: <IconPlaylist className="size-5" />,
   },
 ]
 
@@ -69,23 +68,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               size="lg"
               render={<Link to="/dashboard" />}
             >
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <IconBrandSpotify className="size-5" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">SpotiTrack</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  Listening stats
-                </span>
-              </div>
+              <img src="/icon.svg" alt="SpotiTrack" className="size-8 rounded-lg" />
+              <span className="truncate text-base font-bold tracking-tight">
+                SpotTrack
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupLabel className="mb-1 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/60">
+            Overview
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navMain.map((item) => (
@@ -104,6 +99,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={isActive("/settings")}
+              render={<Link to="/settings" />}
+            >
+              <IconSettings className="size-5" />
+              <span>Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

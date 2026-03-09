@@ -1,15 +1,11 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router"
 import {
   IconBrandSpotify,
-  IconClock,
   IconLogout,
   IconMoon,
-  IconMusic,
-  IconPlaylist,
   IconRefresh,
   IconShieldCheck,
   IconSun,
-  IconUser,
 } from "@tabler/icons-react"
 import {
   Card,
@@ -18,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -31,45 +26,6 @@ import { formatVersion } from "@/lib/version"
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 })
-
-const SPOTIFY_SCOPES = [
-  {
-    scope: "user-read-email",
-    label: "Email",
-    description: "Read your email address",
-    icon: IconUser,
-  },
-  {
-    scope: "user-read-private",
-    label: "Profile",
-    description: "Read your profile information",
-    icon: IconUser,
-  },
-  {
-    scope: "user-top-read",
-    label: "Top Items",
-    description: "Read your top artists and tracks",
-    icon: IconMusic,
-  },
-  {
-    scope: "user-read-recently-played",
-    label: "Recent Plays",
-    description: "Read your recently played tracks",
-    icon: IconClock,
-  },
-  {
-    scope: "playlist-read-private",
-    label: "Private Playlists",
-    description: "Read your private playlists",
-    icon: IconPlaylist,
-  },
-  {
-    scope: "playlist-read-collaborative",
-    label: "Collaborative Playlists",
-    description: "Read collaborative playlists you're part of",
-    icon: IconPlaylist,
-  },
-]
 
 function SettingsPage() {
   const router = useRouter()
@@ -150,34 +106,11 @@ function SettingsPage() {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="mb-3 text-sm font-medium">Granted Permissions</p>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {SPOTIFY_SCOPES.map(({ scope, label, description, icon: Icon }) => (
-                <div
-                  key={scope}
-                  className="flex items-start gap-3 rounded-lg border p-3"
-                >
-                  <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-none">{label}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <Separator />
+        <CardContent>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Reconnect</p>
-              <p className="text-xs text-muted-foreground">
-                Re-authenticate with Spotify to refresh your permissions.
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Re-authenticate to refresh your permissions.
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -230,47 +163,6 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Preferences</CardTitle>
-          <CardDescription>
-            Configure your listening analytics experience.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="compact-view">Compact View</Label>
-              <p className="text-xs text-muted-foreground">
-                Use a more condensed layout for lists.
-              </p>
-            </div>
-            <Switch id="compact-view" />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="show-explicit">Show Explicit Content</Label>
-              <p className="text-xs text-muted-foreground">
-                Display explicit tracks in your lists.
-              </p>
-            </div>
-            <Switch id="show-explicit" defaultChecked />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="album-art">Album Art Previews</Label>
-              <p className="text-xs text-muted-foreground">
-                Show album artwork in track listings.
-              </p>
-            </div>
-            <Switch id="album-art" defaultChecked />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Danger Zone */}
       <Card className="border-destructive/30">
         <CardHeader>
@@ -279,7 +171,7 @@ function SettingsPage() {
             Irreversible actions for your account.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Sign Out</p>
@@ -299,24 +191,6 @@ function SettingsPage() {
               <IconLogout className="size-4" />
               Sign Out
             </Button>
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Revoke Access</p>
-              <p className="text-xs text-muted-foreground">
-                Remove SpotiTrack from your Spotify connected apps. Visit your{" "}
-                <a
-                  href="https://www.spotify.com/account/apps/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline underline-offset-4"
-                >
-                  Spotify settings
-                </a>{" "}
-                to manage this.
-              </p>
-            </div>
           </div>
         </CardContent>
       </Card>
