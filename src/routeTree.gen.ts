@@ -13,12 +13,12 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiImportsRouteImport } from './routes/api/imports'
-import { Route as AuthenticatedTopTracksRouteImport } from './routes/_authenticated/top-tracks'
-import { Route as AuthenticatedTopArtistsRouteImport } from './routes/_authenticated/top-artists'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRecentRouteImport } from './routes/_authenticated/recent'
-import { Route as AuthenticatedPlaylistsRouteImport } from './routes/_authenticated/playlists'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTopTracksIndexRouteImport } from './routes/_authenticated/top-tracks/index'
+import { Route as AuthenticatedTopArtistsIndexRouteImport } from './routes/_authenticated/top-artists/index'
+import { Route as AuthenticatedPlaylistsIndexRouteImport } from './routes/_authenticated/playlists/index'
 import { Route as ApiStatsTrackDetailRouteImport } from './routes/api/stats/track-detail'
 import { Route as ApiStatsTopTracksRouteImport } from './routes/api/stats/top-tracks'
 import { Route as ApiStatsTopArtistsRouteImport } from './routes/api/stats/top-artists'
@@ -36,6 +36,9 @@ import { Route as ApiSpotifyPlaylistInsightsRouteImport } from './routes/api/spo
 import { Route as ApiSpotifyBackgroundSyncStatusRouteImport } from './routes/api/spotify/background-sync-status'
 import { Route as ApiImportsSpotifyRouteImport } from './routes/api/imports/spotify'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthenticatedTopTracksTrackNameRouteImport } from './routes/_authenticated/top-tracks/$trackName'
+import { Route as AuthenticatedTopArtistsArtistNameRouteImport } from './routes/_authenticated/top-artists/$artistName'
+import { Route as AuthenticatedPlaylistsPlaylistIdRouteImport } from './routes/_authenticated/playlists/$playlistId'
 
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
@@ -56,16 +59,6 @@ const ApiImportsRoute = ApiImportsRouteImport.update({
   path: '/api/imports',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTopTracksRoute = AuthenticatedTopTracksRouteImport.update({
-  id: '/top-tracks',
-  path: '/top-tracks',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedTopArtistsRoute = AuthenticatedTopArtistsRouteImport.update({
-  id: '/top-artists',
-  path: '/top-artists',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -76,16 +69,29 @@ const AuthenticatedRecentRoute = AuthenticatedRecentRouteImport.update({
   path: '/recent',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPlaylistsRoute = AuthenticatedPlaylistsRouteImport.update({
-  id: '/playlists',
-  path: '/playlists',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedTopTracksIndexRoute =
+  AuthenticatedTopTracksIndexRouteImport.update({
+    id: '/top-tracks/',
+    path: '/top-tracks/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTopArtistsIndexRoute =
+  AuthenticatedTopArtistsIndexRouteImport.update({
+    id: '/top-artists/',
+    path: '/top-artists/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPlaylistsIndexRoute =
+  AuthenticatedPlaylistsIndexRouteImport.update({
+    id: '/playlists/',
+    path: '/playlists/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ApiStatsTrackDetailRoute = ApiStatsTrackDetailRouteImport.update({
   id: '/api/stats/track-detail',
   path: '/api/stats/track-detail',
@@ -173,17 +179,35 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTopTracksTrackNameRoute =
+  AuthenticatedTopTracksTrackNameRouteImport.update({
+    id: '/top-tracks/$trackName',
+    path: '/top-tracks/$trackName',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTopArtistsArtistNameRoute =
+  AuthenticatedTopArtistsArtistNameRouteImport.update({
+    id: '/top-artists/$artistName',
+    path: '/top-artists/$artistName',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPlaylistsPlaylistIdRoute =
+  AuthenticatedPlaylistsPlaylistIdRouteImport.update({
+    id: '/playlists/$playlistId',
+    path: '/playlists/$playlistId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/playlists': typeof AuthenticatedPlaylistsRoute
   '/recent': typeof AuthenticatedRecentRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/top-artists': typeof AuthenticatedTopArtistsRoute
-  '/top-tracks': typeof AuthenticatedTopTracksRoute
   '/api/imports': typeof ApiImportsRouteWithChildren
+  '/playlists/$playlistId': typeof AuthenticatedPlaylistsPlaylistIdRoute
+  '/top-artists/$artistName': typeof AuthenticatedTopArtistsArtistNameRoute
+  '/top-tracks/$trackName': typeof AuthenticatedTopTracksTrackNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/imports/spotify': typeof ApiImportsSpotifyRoute
   '/api/spotify/background-sync-status': typeof ApiSpotifyBackgroundSyncStatusRoute
@@ -201,17 +225,20 @@ export interface FileRoutesByFullPath {
   '/api/stats/top-artists': typeof ApiStatsTopArtistsRoute
   '/api/stats/top-tracks': typeof ApiStatsTopTracksRoute
   '/api/stats/track-detail': typeof ApiStatsTrackDetailRoute
+  '/playlists/': typeof AuthenticatedPlaylistsIndexRoute
+  '/top-artists/': typeof AuthenticatedTopArtistsIndexRoute
+  '/top-tracks/': typeof AuthenticatedTopTracksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/playlists': typeof AuthenticatedPlaylistsRoute
   '/recent': typeof AuthenticatedRecentRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/top-artists': typeof AuthenticatedTopArtistsRoute
-  '/top-tracks': typeof AuthenticatedTopTracksRoute
   '/api/imports': typeof ApiImportsRouteWithChildren
+  '/playlists/$playlistId': typeof AuthenticatedPlaylistsPlaylistIdRoute
+  '/top-artists/$artistName': typeof AuthenticatedTopArtistsArtistNameRoute
+  '/top-tracks/$trackName': typeof AuthenticatedTopTracksTrackNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/imports/spotify': typeof ApiImportsSpotifyRoute
   '/api/spotify/background-sync-status': typeof ApiSpotifyBackgroundSyncStatusRoute
@@ -229,6 +256,9 @@ export interface FileRoutesByTo {
   '/api/stats/top-artists': typeof ApiStatsTopArtistsRoute
   '/api/stats/top-tracks': typeof ApiStatsTopTracksRoute
   '/api/stats/track-detail': typeof ApiStatsTrackDetailRoute
+  '/playlists': typeof AuthenticatedPlaylistsIndexRoute
+  '/top-artists': typeof AuthenticatedTopArtistsIndexRoute
+  '/top-tracks': typeof AuthenticatedTopTracksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -236,12 +266,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/playlists': typeof AuthenticatedPlaylistsRoute
   '/_authenticated/recent': typeof AuthenticatedRecentRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/top-artists': typeof AuthenticatedTopArtistsRoute
-  '/_authenticated/top-tracks': typeof AuthenticatedTopTracksRoute
   '/api/imports': typeof ApiImportsRouteWithChildren
+  '/_authenticated/playlists/$playlistId': typeof AuthenticatedPlaylistsPlaylistIdRoute
+  '/_authenticated/top-artists/$artistName': typeof AuthenticatedTopArtistsArtistNameRoute
+  '/_authenticated/top-tracks/$trackName': typeof AuthenticatedTopTracksTrackNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/imports/spotify': typeof ApiImportsSpotifyRoute
   '/api/spotify/background-sync-status': typeof ApiSpotifyBackgroundSyncStatusRoute
@@ -259,6 +289,9 @@ export interface FileRoutesById {
   '/api/stats/top-artists': typeof ApiStatsTopArtistsRoute
   '/api/stats/top-tracks': typeof ApiStatsTopTracksRoute
   '/api/stats/track-detail': typeof ApiStatsTrackDetailRoute
+  '/_authenticated/playlists/': typeof AuthenticatedPlaylistsIndexRoute
+  '/_authenticated/top-artists/': typeof AuthenticatedTopArtistsIndexRoute
+  '/_authenticated/top-tracks/': typeof AuthenticatedTopTracksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,12 +299,12 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/dashboard'
-    | '/playlists'
     | '/recent'
     | '/settings'
-    | '/top-artists'
-    | '/top-tracks'
     | '/api/imports'
+    | '/playlists/$playlistId'
+    | '/top-artists/$artistName'
+    | '/top-tracks/$trackName'
     | '/api/auth/$'
     | '/api/imports/spotify'
     | '/api/spotify/background-sync-status'
@@ -289,17 +322,20 @@ export interface FileRouteTypes {
     | '/api/stats/top-artists'
     | '/api/stats/top-tracks'
     | '/api/stats/track-detail'
+    | '/playlists/'
+    | '/top-artists/'
+    | '/top-tracks/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/sign-in'
     | '/dashboard'
-    | '/playlists'
     | '/recent'
     | '/settings'
-    | '/top-artists'
-    | '/top-tracks'
     | '/api/imports'
+    | '/playlists/$playlistId'
+    | '/top-artists/$artistName'
+    | '/top-tracks/$trackName'
     | '/api/auth/$'
     | '/api/imports/spotify'
     | '/api/spotify/background-sync-status'
@@ -317,18 +353,21 @@ export interface FileRouteTypes {
     | '/api/stats/top-artists'
     | '/api/stats/top-tracks'
     | '/api/stats/track-detail'
+    | '/playlists'
+    | '/top-artists'
+    | '/top-tracks'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/sign-in'
     | '/_authenticated/dashboard'
-    | '/_authenticated/playlists'
     | '/_authenticated/recent'
     | '/_authenticated/settings'
-    | '/_authenticated/top-artists'
-    | '/_authenticated/top-tracks'
     | '/api/imports'
+    | '/_authenticated/playlists/$playlistId'
+    | '/_authenticated/top-artists/$artistName'
+    | '/_authenticated/top-tracks/$trackName'
     | '/api/auth/$'
     | '/api/imports/spotify'
     | '/api/spotify/background-sync-status'
@@ -346,6 +385,9 @@ export interface FileRouteTypes {
     | '/api/stats/top-artists'
     | '/api/stats/top-tracks'
     | '/api/stats/track-detail'
+    | '/_authenticated/playlists/'
+    | '/_authenticated/top-artists/'
+    | '/_authenticated/top-tracks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -401,20 +443,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImportsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/top-tracks': {
-      id: '/_authenticated/top-tracks'
-      path: '/top-tracks'
-      fullPath: '/top-tracks'
-      preLoaderRoute: typeof AuthenticatedTopTracksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/top-artists': {
-      id: '/_authenticated/top-artists'
-      path: '/top-artists'
-      fullPath: '/top-artists'
-      preLoaderRoute: typeof AuthenticatedTopArtistsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -429,18 +457,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/playlists': {
-      id: '/_authenticated/playlists'
-      path: '/playlists'
-      fullPath: '/playlists'
-      preLoaderRoute: typeof AuthenticatedPlaylistsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/top-tracks/': {
+      id: '/_authenticated/top-tracks/'
+      path: '/top-tracks'
+      fullPath: '/top-tracks/'
+      preLoaderRoute: typeof AuthenticatedTopTracksIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/top-artists/': {
+      id: '/_authenticated/top-artists/'
+      path: '/top-artists'
+      fullPath: '/top-artists/'
+      preLoaderRoute: typeof AuthenticatedTopArtistsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/playlists/': {
+      id: '/_authenticated/playlists/'
+      path: '/playlists'
+      fullPath: '/playlists/'
+      preLoaderRoute: typeof AuthenticatedPlaylistsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/api/stats/track-detail': {
@@ -562,25 +604,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/top-tracks/$trackName': {
+      id: '/_authenticated/top-tracks/$trackName'
+      path: '/top-tracks/$trackName'
+      fullPath: '/top-tracks/$trackName'
+      preLoaderRoute: typeof AuthenticatedTopTracksTrackNameRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/top-artists/$artistName': {
+      id: '/_authenticated/top-artists/$artistName'
+      path: '/top-artists/$artistName'
+      fullPath: '/top-artists/$artistName'
+      preLoaderRoute: typeof AuthenticatedTopArtistsArtistNameRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/playlists/$playlistId': {
+      id: '/_authenticated/playlists/$playlistId'
+      path: '/playlists/$playlistId'
+      fullPath: '/playlists/$playlistId'
+      preLoaderRoute: typeof AuthenticatedPlaylistsPlaylistIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedPlaylistsRoute: typeof AuthenticatedPlaylistsRoute
   AuthenticatedRecentRoute: typeof AuthenticatedRecentRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedTopArtistsRoute: typeof AuthenticatedTopArtistsRoute
-  AuthenticatedTopTracksRoute: typeof AuthenticatedTopTracksRoute
+  AuthenticatedPlaylistsPlaylistIdRoute: typeof AuthenticatedPlaylistsPlaylistIdRoute
+  AuthenticatedTopArtistsArtistNameRoute: typeof AuthenticatedTopArtistsArtistNameRoute
+  AuthenticatedTopTracksTrackNameRoute: typeof AuthenticatedTopTracksTrackNameRoute
+  AuthenticatedPlaylistsIndexRoute: typeof AuthenticatedPlaylistsIndexRoute
+  AuthenticatedTopArtistsIndexRoute: typeof AuthenticatedTopArtistsIndexRoute
+  AuthenticatedTopTracksIndexRoute: typeof AuthenticatedTopTracksIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedPlaylistsRoute: AuthenticatedPlaylistsRoute,
   AuthenticatedRecentRoute: AuthenticatedRecentRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedTopArtistsRoute: AuthenticatedTopArtistsRoute,
-  AuthenticatedTopTracksRoute: AuthenticatedTopTracksRoute,
+  AuthenticatedPlaylistsPlaylistIdRoute: AuthenticatedPlaylistsPlaylistIdRoute,
+  AuthenticatedTopArtistsArtistNameRoute:
+    AuthenticatedTopArtistsArtistNameRoute,
+  AuthenticatedTopTracksTrackNameRoute: AuthenticatedTopTracksTrackNameRoute,
+  AuthenticatedPlaylistsIndexRoute: AuthenticatedPlaylistsIndexRoute,
+  AuthenticatedTopArtistsIndexRoute: AuthenticatedTopArtistsIndexRoute,
+  AuthenticatedTopTracksIndexRoute: AuthenticatedTopTracksIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

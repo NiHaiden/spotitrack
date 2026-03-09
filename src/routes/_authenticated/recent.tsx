@@ -2,13 +2,6 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,7 +11,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { apiFetch, formatPlayedAt } from "@/lib/spotify-client"
-import { IconRefresh, IconUpload } from "@tabler/icons-react"
+import { IconFilter, IconMusic, IconRefresh, IconUpload } from "@tabler/icons-react"
 import {
   recentQueryOptions,
   statsOverviewQueryOptions,
@@ -44,25 +37,11 @@ export const Route = createFileRoute("/_authenticated/recent")({
   component: RecentPage,
 })
 
-const recentTrendConfig = {
-  plays: {
-    label: "Plays",
-    color: "var(--chart-1)",
-  },
-} satisfies ChartConfig
-
-const recentHourConfig = {
-  plays: {
-    label: "Plays",
-    color: "var(--chart-2)",
-  },
-} satisfies ChartConfig
-
 function RecentPage() {
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
   const [infoMessage, setInfoMessage] = useState<string | null>(null)
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [showImport, setShowImport] = useState(false)
 
   const recentItemsQuery = useQuery(recentQueryOptions(200))
 
@@ -111,6 +90,7 @@ function RecentPage() {
         `Import finished. Inserted ${payload.inserted}/${payload.normalized} plays, resolved ${payload.tracksResolved} tracks.`,
       )
       setFiles([])
+      setShowImport(false)
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["stats"] }),
         queryClient.invalidateQueries({ queryKey: ["spotify", "playlists"] }),
@@ -126,201 +106,161 @@ function RecentPage() {
     null
 
   const items = recentItemsQuery.data?.items ?? []
-
-  const byDay = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const item of items) {
-      const day = String(item.playedAt).slice(0, 10)
-      map.set(day, (map.get(day) ?? 0) + 1)
-    }
-
-    return Array.from(map.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([day, plays]) => ({ day, label: day.slice(5), plays }))
-  }, [items])
-
-  const activeDay = selectedDay ?? byDay[byDay.length - 1]?.day ?? null
-
-  const dayItems = useMemo(
-    () => items.filter(item => String(item.playedAt).slice(0, 10) === activeDay),
-    [items, activeDay],
-  )
-
-  const byHour = useMemo(() => {
-    const map = new Map<number, number>()
-    for (let hour = 0; hour < 24; hour += 1) {
-      map.set(hour, 0)
-    }
-
-    for (const item of dayItems) {
-      const hour = new Date(item.playedAt).getHours()
-      map.set(hour, (map.get(hour) ?? 0) + 1)
-    }
-
-    return Array.from(map.entries()).map(([hour, plays]) => ({
-      hour,
-      label: `${String(hour).padStart(2, "0")}:00`,
-      plays,
-    }))
-  }, [dayItems])
-
   const loading = recentItemsQuery.isPending
 
+  // Group items by day
+  const groupedByDay = useMemo(() => {
+    const groups = new Map<string, typeof items>()
+    for (const item of items) {
+      const day = String(item.playedAt).slice(0, 10)
+      const existing = groups.get(day) ?? []
+      existing.push(item)
+      groups.set(day, existing)
+    }
+    return Array.from(groups.entries()).sort((a, b) => b[0].localeCompare(a[0]))
+  }, [items])
+
+  function formatDayHeader(day: string) {
+    const date = new Date(day + "T12:00:00")
+    const today = new Date()
+    const todayStr = today.toISOString().slice(0, 10)
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    if (day === todayStr) return `Today · ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+    if (day === yesterday) return `Yesterday · ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+    return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+  }
+
+  function formatDuration(ms: number | null | undefined) {
+    if (!ms) return "—"
+    const totalSeconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${minutes}:${String(seconds).padStart(2, "0")}`
+  }
+
   return (
-    <div className="space-y-6 pt-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Recent Plays</h2>
-          <p className="text-muted-foreground">
-            Track imports, syncs, and drill into your latest listening sessions.
-          </p>
+    <div className="space-y-7">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[34px]">Recent Plays</h1>
+          <p className="text-sm text-muted-foreground">Your complete listening timeline</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => syncMutation.mutate()}
-          disabled={syncMutation.isPending}
-        >
-          <IconRefresh className="mr-2 size-4" />
-          {syncMutation.isPending ? "Syncing..." : "Sync from Spotify"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowImport(!showImport)}
+            className="flex items-center gap-1.5 rounded-[10px] bg-card px-4 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <IconUpload className="size-3.5" />
+            Import
+          </button>
+          <button
+            type="button"
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="flex items-center gap-1.5 rounded-[10px] bg-card px-4 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+          >
+            <IconRefresh className={`size-3.5 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+            {syncMutation.isPending ? "Syncing..." : "Sync"}
+          </button>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Import Spotify Privacy Data</CardTitle>
-          <CardDescription>
+      {/* Import section */}
+      {showImport ? (
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="text-lg font-semibold">Import Spotify Privacy Data</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             Upload Spotify JSON exports to backfill your full history.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <input
-            type="file"
-            accept="application/json,.json"
-            multiple
-            onChange={event => setFiles(Array.from(event.currentTarget.files ?? []))}
-            className="block w-full text-sm"
-          />
-          <div className="flex items-center gap-3">
+          </p>
+          <div className="mt-4 space-y-3">
+            <input
+              type="file"
+              accept="application/json,.json"
+              multiple
+              onChange={event => setFiles(Array.from(event.currentTarget.files ?? []))}
+              className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
+            />
             <Button
               onClick={() => importMutation.mutate(files)}
               disabled={!files.length || importMutation.isPending}
-              variant="secondary"
+              size="sm"
             >
-              <IconUpload className="mr-2 size-4" />
               {importMutation.isPending
                 ? "Importing..."
                 : `Import ${files.length || ""} file${files.length === 1 ? "" : "s"}`}
             </Button>
-            {files.length ? (
-              <p className="text-xs text-muted-foreground">{files.length} file(s) selected</p>
-            ) : null}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      ) : null}
 
       {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
-      {infoMessage ? <p className="text-sm text-emerald-600">{infoMessage}</p> : null}
+      {infoMessage ? <p className="text-sm text-emerald-500">{infoMessage}</p> : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Plays per day</CardTitle>
-            <CardDescription>Click a day to inspect hours and songs.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-72 w-full" />
-            ) : byDay.length ? (
-              <ChartContainer config={recentTrendConfig} className="h-72 w-full">
-                <BarChart
-                  data={byDay}
-                  margin={{ top: 12, right: 12, left: 0, bottom: 10 }}
-                  onClick={event => {
-                    const day =
-                      event && typeof event === "object" && "activePayload" in event
-                        ? (event.activePayload as Array<{ payload?: { day?: string } }> | undefined)?.[0]
-                            ?.payload?.day
-                        : undefined
-
-                    if (day) {
-                      setSelectedDay(String(day))
-                    }
-                  }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="label" />
-                  <YAxis allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="plays" fill="var(--color-plays)" radius={4} />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground">No recent activity yet.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Hourly breakdown</CardTitle>
-            <CardDescription>
-              {activeDay ? `For ${activeDay}` : "Select a day"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-72 w-full" />
-            ) : byHour.length ? (
-              <ChartContainer config={recentHourConfig} className="h-72 w-full">
-                <BarChart data={byHour} margin={{ top: 12, right: 12, left: 0, bottom: 10 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="label" tickFormatter={value => String(value).slice(0, 2)} />
-                  <YAxis allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="plays" fill="var(--color-plays)" radius={4} />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground">No hourly data available.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Day drilldown</CardTitle>
-          <CardDescription>
-            {activeDay ? `Showing listens for ${activeDay}` : "No day selected"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-              ))}
+      {/* Recent plays table grouped by day */}
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : groupedByDay.length ? (
+        <div className="space-y-6">
+          {groupedByDay.map(([day, dayItems]) => (
+            <div key={day}>
+              <p className="mb-3 text-[13px] font-semibold text-primary">
+                {formatDayHeader(day)}
+              </p>
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/50">
+                      <th className="px-6 py-3.5">TRACK / ARTIST</th>
+                      <th className="px-4 py-3.5 hidden md:table-cell w-[120px]">SOURCE</th>
+                      <th className="px-4 py-3.5 text-right hidden sm:table-cell w-[100px]">DURATION</th>
+                      <th className="px-6 py-3.5 text-right w-20">TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dayItems.map(item => (
+                      <tr key={item.id} className="border-b border-border last:border-0">
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-4">
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                              <IconMusic className="size-3.5 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium leading-[18px]">{item.trackName}</p>
+                              <p className="truncate text-xs text-muted-foreground leading-4">{item.artistName}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 hidden md:table-cell">
+                          <div className="flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-emerald-500" />
+                            <span className="text-sm text-muted-foreground">{item.source}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right text-[13px] tabular-nums text-muted-foreground hidden sm:table-cell">
+                          {formatDuration(item.msPlayed)}
+                        </td>
+                        <td className="px-6 py-3 text-right text-[13px] tabular-nums text-muted-foreground/60">
+                          {new Date(item.playedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          ) : dayItems.length ? (
-            <div className="space-y-2">
-              {dayItems.map(item => (
-                <div key={item.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{item.trackName}</p>
-                    <p className="truncate text-xs text-muted-foreground">{item.artistName}</p>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>{formatPlayedAt(item.playedAt)}</p>
-                    <p>{item.source}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No plays found for this day.</p>
-          )}
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border">
+          <p className="text-sm text-muted-foreground">No recent plays yet. Sync from Spotify first.</p>
+        </div>
+      )}
     </div>
   )
 }

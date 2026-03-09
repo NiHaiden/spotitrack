@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { IconLoader2, IconRefresh, IconRefreshAlert } from "@tabler/icons-react"
-import { Badge } from "@/components/ui/badge"
+import { IconLoader2 } from "@tabler/icons-react"
 import { backgroundSyncStatusQueryOptions } from "@/lib/spotify-query-options"
 
 function formatRelative(iso: string | null) {
@@ -34,35 +33,30 @@ export function BackgroundSyncStatus() {
 
   if (statusQuery.isPending) {
     return (
-      <Badge variant="outline" className="gap-1.5">
+      <div className="flex items-center gap-2 rounded-[10px] bg-card px-3 py-2 text-xs text-muted-foreground">
         <IconLoader2 className="size-3 animate-spin" />
-        Sync status…
-      </Badge>
+        <span>Sync status...</span>
+      </div>
     )
   }
 
   if (statusQuery.error || !statusQuery.data) {
-    return (
-      <Badge variant="destructive" className="gap-1.5">
-        <IconRefreshAlert className="size-3" />
-        Sync unavailable
-      </Badge>
-    )
+    return null
   }
 
   if (statusQuery.data.isRunning) {
     return (
-      <Badge variant="default" className="gap-1.5">
+      <div className="flex items-center gap-2 rounded-[10px] bg-primary/10 px-3 py-2 text-xs text-primary">
         <IconLoader2 className="size-3 animate-spin" />
-        Syncing in background
-      </Badge>
+        <span>Syncing...</span>
+      </div>
     )
   }
 
   return (
-    <Badge variant="secondary" className="gap-1.5">
-      <IconRefresh className="size-3" />
-      Last sync {formatRelative(statusQuery.data.lastPersistedAt)}
-    </Badge>
+    <div className="flex items-center gap-2 rounded-[10px] bg-card px-3 py-2 text-xs text-muted-foreground">
+      <span className="size-1.5 rounded-full bg-emerald-500" />
+      <span>Synced</span>
+    </div>
   )
 }
