@@ -1,17 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { IconClock, IconMusic, IconRefresh, IconUpload } from "@tabler/icons-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { apiFetch, formatPlayedAt } from "@/lib/spotify-client"
-import { IconFilter, IconMusic, IconRefresh, IconUpload } from "@tabler/icons-react"
+  EmptyState,
+  ErrorNotice,
+  PageHeader,
+  Panel,
+  SourceBadge,
+} from "@/components/page"
+import { apiFetch, formatDurationShort } from "@/lib/spotify-client"
+import {
+  formatRelativeDay,
+  formatTime,
+  formatTrackLength,
+  localDayKey,
+  plural,
+} from "@/lib/format"
 import {
   recentQueryOptions,
   statsOverviewQueryOptions,
@@ -31,6 +38,8 @@ type ImportResponse = {
   tracksResolved: number
 }
 
+const PAGE_SIZE = 50
+
 export const Route = createFileRoute("/_authenticated/recent")({
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(recentQueryOptions(200)),
@@ -42,6 +51,7 @@ function RecentPage() {
   const [files, setFiles] = useState<File[]>([])
   const [infoMessage, setInfoMessage] = useState<string | null>(null)
   const [showImport, setShowImport] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const recentItemsQuery = useQuery(recentQueryOptions(200))
 
@@ -105,14 +115,15 @@ function RecentPage() {
     (importMutation.error instanceof Error && importMutation.error.message) ||
     null
 
-  const items = recentItemsQuery.data?.items ?? []
+  const allItems = recentItemsQuery.data?.items ?? []
+  const items = useMemo(() => allItems.slice(0, visibleCount), [allItems, visibleCount])
   const loading = recentItemsQuery.isPending
 
-  // Group items by day
+  // Group by the viewer's local day, newest first.
   const groupedByDay = useMemo(() => {
     const groups = new Map<string, typeof items>()
     for (const item of items) {
-      const day = String(item.playedAt).slice(0, 10)
+      const day = localDayKey(new Date(item.playedAt))
       const existing = groups.get(day) ?? []
       existing.push(item)
       groups.set(day, existing)
@@ -121,84 +132,86 @@ function RecentPage() {
   }, [items])
 
   function formatDayHeader(day: string) {
-    const date = new Date(day + "T12:00:00")
-    const today = new Date()
-    const todayStr = today.toISOString().slice(0, 10)
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-    if (day === todayStr) return `Today · ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
-    if (day === yesterday) return `Yesterday · ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
-    return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
-  }
-
-  function formatDuration(ms: number | null | undefined) {
-    if (!ms) return "—"
-    const totalSeconds = Math.floor(ms / 1000)
-    const minutes = Math.floor(totalSeconds / 60)
-    const seconds = totalSeconds % 60
-    return `${minutes}:${String(seconds).padStart(2, "0")}`
+    const date = new Date(`${day}T12:00:00`)
+    const relative = formatRelativeDay(date)
+    const full = date.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    })
+    return relative === "Today" || relative === "Yesterday"
+      ? { title: relative, subtitle: full }
+      : { title: full, subtitle: null }
   }
 
   return (
-    <div className="space-y-7">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[34px]">Recent Plays</h1>
-          <p className="text-sm text-muted-foreground">Your complete listening timeline</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setShowImport(!showImport)}
-            className="flex items-center gap-1.5 rounded-[10px] bg-card px-4 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <IconUpload className="size-3.5" />
-            Import
-          </button>
-          <button
-            type="button"
-            onClick={() => syncMutation.mutate()}
-            disabled={syncMutation.isPending}
-            className="flex items-center gap-1.5 rounded-[10px] bg-card px-4 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-          >
-            <IconRefresh className={`size-3.5 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-            {syncMutation.isPending ? "Syncing..." : "Sync"}
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6 lg:space-y-7">
+      <PageHeader
+        title="Recent Plays"
+        description={`Your listening timeline · last ${allItems.length} tracked plays`}
+        actions={
+          <>
+            <Button
+              variant={showImport ? "secondary" : "outline"}
+              onClick={() => setShowImport(!showImport)}
+              aria-expanded={showImport}
+            >
+              <IconUpload />
+              Import
+            </Button>
+            <Button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
+              <IconRefresh className={syncMutation.isPending ? "animate-spin" : undefined} />
+              {syncMutation.isPending ? "Syncing…" : "Sync now"}
+            </Button>
+          </>
+        }
+      />
 
-      {/* Import section */}
       {showImport ? (
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <h3 className="text-lg font-semibold">Import Spotify Privacy Data</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Upload Spotify JSON exports to backfill your full history.
-          </p>
-          <div className="mt-4 space-y-3">
-            <input
-              type="file"
-              accept="application/json,.json"
-              multiple
-              onChange={event => setFiles(Array.from(event.currentTarget.files ?? []))}
-              className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
-            />
+        <Panel
+          title="Import Spotify privacy data"
+          description="Upload the StreamingHistory JSON files from your Spotify data export to backfill your full history."
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-3 transition-colors hover:border-primary/50 hover:bg-primary/5">
+              <IconUpload className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate text-sm text-muted-foreground">
+                {files.length
+                  ? files.map(file => file.name).join(", ")
+                  : "Choose .json files…"}
+              </span>
+              <input
+                type="file"
+                accept="application/json,.json"
+                multiple
+                onChange={event => setFiles(Array.from(event.currentTarget.files ?? []))}
+                className="sr-only"
+              />
+            </label>
             <Button
               onClick={() => importMutation.mutate(files)}
               disabled={!files.length || importMutation.isPending}
-              size="sm"
             >
               {importMutation.isPending
-                ? "Importing..."
-                : `Import ${files.length || ""} file${files.length === 1 ? "" : "s"}`}
+                ? "Importing…"
+                : files.length
+                  ? `Import ${plural(files.length, "file")}`
+                  : "Import"}
             </Button>
           </div>
+        </Panel>
+      ) : null}
+
+      <ErrorNotice message={errorMessage || null} />
+      {infoMessage ? (
+        <div
+          role="status"
+          className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400"
+        >
+          {infoMessage}
         </div>
       ) : null}
 
-      {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
-      {infoMessage ? <p className="text-sm text-emerald-500">{infoMessage}</p> : null}
-
-      {/* Recent plays table grouped by day */}
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -206,60 +219,79 @@ function RecentPage() {
           ))}
         </div>
       ) : groupedByDay.length ? (
-        <div className="space-y-6">
-          {groupedByDay.map(([day, dayItems]) => (
-            <div key={day}>
-              <p className="mb-3 text-[13px] font-semibold text-primary">
-                {formatDayHeader(day)}
-              </p>
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/50">
-                      <th className="px-6 py-3.5">TRACK / ARTIST</th>
-                      <th className="px-4 py-3.5 hidden md:table-cell w-[120px]">SOURCE</th>
-                      <th className="px-4 py-3.5 text-right hidden sm:table-cell w-[100px]">DURATION</th>
-                      <th className="px-6 py-3.5 text-right w-20">TIME</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dayItems.map(item => (
-                      <tr key={item.id} className="border-b border-border last:border-0">
-                        <td className="px-6 py-3">
-                          <div className="flex items-center gap-4">
-                            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
-                              <IconMusic className="size-3.5 text-muted-foreground" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium leading-[18px]">{item.trackName}</p>
-                              <p className="truncate text-xs text-muted-foreground leading-4">{item.artistName}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
-                          <div className="flex items-center gap-1.5">
-                            <span className="size-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-sm text-muted-foreground">{item.source}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right text-[13px] tabular-nums text-muted-foreground hidden sm:table-cell">
-                          {formatDuration(item.msPlayed)}
-                        </td>
-                        <td className="px-6 py-3 text-right text-[13px] tabular-nums text-muted-foreground/60">
-                          {new Date(item.playedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+        <div className="space-y-5">
+          {groupedByDay.map(([day, dayItems]) => {
+            const header = formatDayHeader(day)
+            const dayMs = dayItems.reduce((sum, item) => sum + Number(item.msPlayed), 0)
+            return (
+              <Panel
+                key={day}
+                flush
+                className="overflow-hidden"
+                title={
+                  <span className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-primary">{header.title}</span>
+                    {header.subtitle ? (
+                      <span className="text-[13px] font-normal text-muted-foreground">
+                        {header.subtitle}
+                      </span>
+                    ) : null}
+                  </span>
+                }
+                action={
+                  <span className="shrink-0 text-[13px] text-muted-foreground tabular-nums">
+                    {plural(dayItems.length, "play")} · {formatDurationShort(dayMs)}
+                  </span>
+                }
+              >
+                <ul className="divide-y divide-border">
+                  {dayItems.map(item => (
+                    <li
+                      key={item.id}
+                      className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-muted/50 sm:gap-4 sm:px-6"
+                    >
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                        <IconMusic className="size-3.5 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{item.trackName}</p>
+                        <p className="truncate text-xs text-muted-foreground">{item.artistName}</p>
+                      </div>
+                      <div className="hidden w-24 md:block">
+                        <SourceBadge source={item.source} />
+                      </div>
+                      <span className="hidden w-14 text-right text-[13px] text-muted-foreground tabular-nums sm:block">
+                        {formatTrackLength(item.msPlayed)}
+                      </span>
+                      <span className="w-16 text-right text-[13px] text-muted-foreground tabular-nums">
+                        {formatTime(item.playedAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+            )
+          })}
+          {allItems.length > items.length ? (
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={() => setVisibleCount(count => count + PAGE_SIZE)}>
+                Show more ({allItems.length - items.length} left)
+              </Button>
             </div>
-          ))}
+          ) : null}
         </div>
       ) : (
-        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border">
-          <p className="text-sm text-muted-foreground">No recent plays yet. Sync from Spotify first.</p>
-        </div>
+        <EmptyState
+          icon={<IconClock className="size-5" />}
+          title="No plays yet"
+          description="Sync your recently played tracks from Spotify, or import your privacy data export."
+          action={
+            <Button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
+              <IconRefresh className={syncMutation.isPending ? "animate-spin" : undefined} />
+              Sync now
+            </Button>
+          }
+        />
       )}
     </div>
   )

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { IconLoader2 } from "@tabler/icons-react"
 import { backgroundSyncStatusQueryOptions } from "@/lib/spotify-query-options"
 
-function formatRelative(iso: string | null) {
+export function formatRelative(iso: string | null) {
   if (!iso) {
     return "never"
   }
@@ -28,14 +28,17 @@ function formatRelative(iso: string | null) {
   return `${days}d ago`
 }
 
+const pillClass =
+  "flex h-9 items-center gap-2 rounded-[10px] border border-border bg-card px-3 text-xs font-medium text-muted-foreground shadow-xs"
+
 export function BackgroundSyncStatus() {
   const statusQuery = useQuery(backgroundSyncStatusQueryOptions())
 
   if (statusQuery.isPending) {
     return (
-      <div className="flex items-center gap-2 rounded-[10px] bg-card px-3 py-2 text-xs text-muted-foreground">
+      <div className={pillClass}>
         <IconLoader2 className="size-3 animate-spin" />
-        <span>Sync status...</span>
+        <span>Checking…</span>
       </div>
     )
   }
@@ -46,17 +49,27 @@ export function BackgroundSyncStatus() {
 
   if (statusQuery.data.isRunning) {
     return (
-      <div className="flex items-center gap-2 rounded-[10px] bg-primary/10 px-3 py-2 text-xs text-primary">
+      <div className={`${pillClass} border-primary/30 bg-primary/10 text-primary`}>
         <IconLoader2 className="size-3 animate-spin" />
-        <span>Syncing...</span>
+        <span>Syncing…</span>
       </div>
     )
   }
 
+  const { lastCompletedAt, lastPersistedAt, lastErrorAt } = statusQuery.data
+  const lastSync = lastCompletedAt ?? lastPersistedAt
+  const failed =
+    lastErrorAt !== null && (lastSync === null || lastErrorAt > lastSync)
+
   return (
-    <div className="flex items-center gap-2 rounded-[10px] bg-card px-3 py-2 text-xs text-muted-foreground">
-      <span className="size-1.5 rounded-full bg-emerald-500" />
-      <span>Synced</span>
+    <div
+      className={pillClass}
+      title={lastSync ? `Last synced ${formatRelative(lastSync)}` : undefined}
+    >
+      <span
+        className={`size-1.5 rounded-full ${failed ? "bg-amber-500" : "bg-emerald-500"}`}
+      />
+      <span>{failed ? "Sync delayed" : "Synced"}</span>
     </div>
   )
 }

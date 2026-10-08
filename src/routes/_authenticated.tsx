@@ -1,4 +1,5 @@
 import {
+  Link,
   createFileRoute,
   Outlet,
   redirect,
@@ -29,11 +30,15 @@ function AuthenticatedLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center px-6 lg:hidden">
-          <SidebarTrigger className="-ml-2" />
+      <SidebarInset className="min-w-0">
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur-md lg:hidden">
+          <SidebarTrigger className="-ml-1" aria-label="Open navigation" />
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <img src="/icon.svg" alt="" className="size-7 rounded-md" />
+            <span className="text-[15px] font-bold tracking-tight">SpotiTrack</span>
+          </Link>
         </header>
-        <div className="flex flex-1 flex-col px-6 py-6 lg:px-10 lg:py-8">
+        <div className="mx-auto flex w-full max-w-[1400px] min-w-0 flex-1 flex-col px-4 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8">
           <Outlet />
         </div>
       </SidebarInset>

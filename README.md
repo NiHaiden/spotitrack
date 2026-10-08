@@ -22,6 +22,23 @@ cp .env.example .env
 pnpm dev
 ```
 
+## End-to-end tests
+
+Playwright drives a production build against a seeded Postgres database and a
+local mock of the Spotify API (`e2e/mock-spotify.ts`), so no Spotify account or
+network access is needed. Requires Node ≥ 22.18.
+
+```bash
+# Uses postgres://postgres@127.0.0.1:5432/spotitrack_e2e by default.
+# The database is wiped and re-seeded on every run — don't point it at real data.
+export E2E_DATABASE_URL=postgres://user:pass@localhost:5432/spotitrack_e2e
+
+pnpm test:e2e               # desktop + mobile suites (builds the app first)
+pnpm test:e2e:screenshots   # every page, light/dark × desktop/mobile → e2e/screenshots/
+```
+
+Set `E2E_SKIP_BUILD=1` to reuse an existing `.output/` build.
+
 ## Production deployment
 
 ### 1. Docker Compose (recommended)

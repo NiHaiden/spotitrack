@@ -22,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 const navMain = [
@@ -55,6 +56,12 @@ const navMain = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouterState()
   const currentPath = router.location.pathname
+  const { isMobile, setOpenMobile } = useSidebar()
+
+  // The mobile sidebar is a drawer; close it once a destination is picked.
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false)
+  }
 
   const isActive = (url: string) =>
     currentPath === url || currentPath.startsWith(`${url}/`)
@@ -66,11 +73,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              render={<Link to="/dashboard" />}
+              render={<Link to="/dashboard" onClick={closeOnMobile} />}
             >
-              <img src="/icon.svg" alt="SpotiTrack" className="size-8 rounded-lg" />
+              <img src="/icon.svg" alt="" className="size-8 rounded-lg" />
               <span className="truncate text-base font-bold tracking-tight">
-                SpotTrack
+                SpotiTrack
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -78,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="mb-1 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/60">
+          <SidebarGroupLabel className="mb-1 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
             Overview
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -87,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     isActive={isActive(item.url)}
-                    render={<Link to={item.url} />}
+                    render={<Link to={item.url} onClick={closeOnMobile} />}
                   >
                     {item.icon}
                     <span>{item.title}</span>
@@ -103,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={isActive("/settings")}
-              render={<Link to="/settings" />}
+              render={<Link to="/settings" onClick={closeOnMobile} />}
             >
               <IconSettings className="size-5" />
               <span>Settings</span>
