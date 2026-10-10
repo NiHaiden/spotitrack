@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge"
 import { signIn, signOut, useSession } from "@/lib/auth-client"
 import { useTheme } from "@/components/theme-provider"
 import { formatVersion } from "@/lib/version"
+import { PageHeader } from "@/components/page"
+import { initials } from "@/lib/format"
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -34,21 +36,18 @@ function SettingsPage() {
   const user = session?.user
 
   return (
-    <div className="w-full space-y-6 pt-4">
-      <div className="flex items-center gap-3">
-        <img src="/icon.svg" alt="SpotiTrack" className="size-10" />
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-            <Badge variant="outline" className="font-mono text-xs">
+    <div className="w-full max-w-3xl space-y-6">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2.5">
+            Settings
+            <Badge variant="outline" className="font-mono text-xs font-normal">
               {formatVersion()}
             </Badge>
-          </div>
-          <p className="text-muted-foreground">
-            Manage your account and preferences.
-          </p>
-        </div>
-      </div>
+          </span>
+        }
+        description="Manage your account and preferences."
+      />
 
       {/* Account */}
       <Card>
@@ -62,15 +61,7 @@ function SettingsPage() {
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
               <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
-              <AvatarFallback className="text-lg">
-                {user?.name
-                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2) ?? "?"}
-              </AvatarFallback>
+              <AvatarFallback className="text-lg">{initials(user?.name)}</AvatarFallback>
             </Avatar>
             <div className="space-y-1">
               <p className="text-lg font-semibold leading-none">
@@ -87,7 +78,7 @@ function SettingsPage() {
       {/* Spotify Connection */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
               <CardTitle className="flex items-center gap-2">
                 <IconBrandSpotify className="size-5 text-[#1DB954]" />
@@ -107,7 +98,7 @@ function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               Re-authenticate to refresh your permissions.
             </p>
@@ -138,7 +129,7 @@ function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {theme === "dark" ? (
                 <IconMoon className="size-5 text-muted-foreground" />
@@ -146,7 +137,7 @@ function SettingsPage() {
                 <IconSun className="size-5 text-muted-foreground" />
               )}
               <div className="space-y-0.5">
-                <Label htmlFor="dark-mode">Dark Mode</Label>
+                <Label htmlFor="dark-mode">Dark mode</Label>
                 <p className="text-xs text-muted-foreground">
                   {theme === "dark"
                     ? "Using dark theme."
@@ -156,6 +147,7 @@ function SettingsPage() {
             </div>
             <Switch
               id="dark-mode"
+              aria-label="Dark mode"
               checked={theme === "dark"}
               onCheckedChange={toggleTheme}
             />
@@ -163,33 +155,33 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Danger Zone */}
-      <Card className="border-destructive/30">
+      {/* Session */}
+      <Card>
         <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardTitle>Session</CardTitle>
           <CardDescription>
-            Irreversible actions for your account.
+            Your listening history stays saved when you sign out.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Sign Out</p>
+              <p className="text-sm font-medium">Sign out</p>
               <p className="text-xs text-muted-foreground">
                 End your session and return to the sign-in page.
               </p>
             </div>
             <Button
-              variant="destructive"
+              variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={async () => {
                 await signOut()
                 router.navigate({ to: "/sign-in" })
               }}
             >
               <IconLogout className="size-4" />
-              Sign Out
+              Sign out
             </Button>
           </div>
         </CardContent>

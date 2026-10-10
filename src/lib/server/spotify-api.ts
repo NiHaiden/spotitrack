@@ -2,8 +2,11 @@ import { and, eq } from "drizzle-orm"
 import { db } from "@/db"
 import { account } from "@/db/schema"
 
-const SPOTIFY_API_BASE = "https://api.spotify.com/v1"
-const SPOTIFY_ACCOUNTS_BASE = "https://accounts.spotify.com"
+// Overridable so e2e tests can point the server at a local mock.
+const SPOTIFY_API_BASE =
+  process.env.SPOTIFY_API_BASE_URL || "https://api.spotify.com/v1"
+const SPOTIFY_ACCOUNTS_BASE =
+  process.env.SPOTIFY_ACCOUNTS_BASE_URL || "https://accounts.spotify.com"
 
 type SpotifyRefreshResponse = {
   access_token: string

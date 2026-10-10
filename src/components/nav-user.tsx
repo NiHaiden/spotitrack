@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSession, signOut } from "@/lib/auth-client"
 import { IconSelector, IconLogout } from "@tabler/icons-react"
 import { useRouter } from "@tanstack/react-router"
+import { initials } from "@/lib/format"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
@@ -64,17 +65,12 @@ export function NavUser() {
             <Avatar>
               <AvatarImage src={user.image ?? undefined} alt={user.name} />
               <AvatarFallback>
-                {user.name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2) ?? "?"}
+                {initials(user.name)}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs">{user.email}</span>
+              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
             </div>
             <IconSelector className="ml-auto size-4" />
           </DropdownMenuTrigger>
@@ -93,17 +89,12 @@ export function NavUser() {
                       alt={user.name}
                     />
                     <AvatarFallback>
-                      {user.name
-                        ?.split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2) ?? "?"}
+                      {initials(user.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs">{user.email}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>

@@ -13,6 +13,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
+    "test:e2e": "playwright test --project=desktop --project=mobile",
+    "test:e2e:screenshots": "playwright test --project=screenshots",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix"
@@ -46,6 +48,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@tanstack/devtools-vite": "^0.3.11",
     "@tanstack/eslint-config": "^0.3.0",
     "@testing-library/dom": "^10.4.0",

@@ -27,7 +27,12 @@ export function StatsRangeSelector({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="outline" size="sm" className="gap-1.5 sm:hidden" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 sm:hidden"
+              aria-label={`Time range: ${statsRangeLabel(value)}`}
+            />
           }
         >
           {statsRangeLabel(value)}
@@ -49,17 +54,22 @@ export function StatsRangeSelector({
       </DropdownMenu>
 
       {/* Desktop: inline buttons */}
-      <div className="hidden items-center gap-0.5 rounded-[10px] bg-card p-1 sm:flex">
+      <div
+        role="group"
+        aria-label="Time range"
+        className="hidden items-center gap-0.5 rounded-[10px] border border-border bg-card p-1 shadow-xs sm:flex"
+      >
         {statsRangeOptions.map(option => (
           <button
             key={option.value}
             type="button"
             onClick={() => onChange(option.value)}
             aria-label={`Select ${statsRangeLabel(option.value)} range`}
-            className={`rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors ${
+            aria-pressed={value === option.value}
+            className={`rounded-[7px] px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:px-3.5 ${
               value === option.value
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             {option.label}
