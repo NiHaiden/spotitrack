@@ -1,13 +1,13 @@
 # Build stage
-FROM node:22-alpine AS builder
+FROM node:26.12.1-alpine AS builder
 
 ARG APP_VERSION=dev
 ARG GIT_HASH=unknown
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm (corepack is no longer bundled with Node >= 25)
+RUN npm install -g pnpm@latest
 
 # Copy package files first for better caching
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -25,12 +25,12 @@ ENV VITE_GIT_HASH=$GIT_HASH
 RUN pnpm build
 
 # Production stage
-FROM node:22-alpine AS runner
+FROM node:26.12.1-alpine AS runner
 
 WORKDIR /app
 
 # Install pnpm and postgresql-client for pg_isready
-RUN corepack enable && corepack prepare pnpm@latest --activate \
+RUN npm install -g pnpm@latest \
     && apk add --no-cache postgresql-client
 
 # Copy package files

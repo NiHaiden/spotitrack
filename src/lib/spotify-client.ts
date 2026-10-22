@@ -1,3 +1,6 @@
+import { createIsomorphicFn } from "@tanstack/react-start"
+import { getRequestHeaders } from "@tanstack/react-start/server"
+
 function resolveRequestUrl(input: string) {
   if (input.startsWith("http://") || input.startsWith("https://")) {
     return input
@@ -15,33 +18,30 @@ function resolveRequestUrl(input: string) {
   return new URL(input, baseUrl).toString()
 }
 
-async function getServerForwardHeaders() {
-  if (typeof window !== "undefined") {
-    return {}
-  }
+const getServerForwardHeaders = createIsomorphicFn()
+  .client((): Record<string, string> => ({}))
+  .server((): Record<string, string> => {
+    try {
+      const requestHeaders = getRequestHeaders()
 
-  try {
-    const { getRequestHeaders } = await import("@tanstack/react-start/server")
-    const requestHeaders = getRequestHeaders()
-
-    return {
-      ...(requestHeaders.get("cookie")
-        ? { cookie: requestHeaders.get("cookie") as string }
-        : {}),
-      ...(requestHeaders.get("authorization")
-        ? { authorization: requestHeaders.get("authorization") as string }
-        : {}),
+      return {
+        ...(requestHeaders.get("cookie")
+          ? { cookie: requestHeaders.get("cookie") as string }
+          : {}),
+        ...(requestHeaders.get("authorization")
+          ? { authorization: requestHeaders.get("authorization") as string }
+          : {}),
+      }
+    } catch {
+      return {}
     }
-  } catch {
-    return {}
-  }
-}
+  })
 
 export async function apiFetch<T>(
   input: string,
   init?: RequestInit,
 ): Promise<T> {
-  const serverForwardHeaders = await getServerForwardHeaders()
+  const serverForwardHeaders = getServerForwardHeaders()
 
   const response = await fetch(resolveRequestUrl(input), {
     ...init,
@@ -109,7 +109,8 @@ export function formatDurationShort(ms: number) {
 }
 
 export function formatPlayedAt(dateString: string | Date) {
-  const date = typeof dateString === "string" ? new Date(dateString) : dateString
+  const date =
+    typeof dateString === "string" ? new Date(dateString) : dateString
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
