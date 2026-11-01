@@ -2,4 +2,8 @@
 
 import { tanstackConfig } from '@tanstack/eslint-config'
 
-export default [...tanstackConfig]
+export default [
+  // Vendored Stageshow kit (MIT), kept as upstream ships it
+  { ignores: ['src/components/stageshow/**'] },
+  ...tanstackConfig,
+]

@@ -1,17 +1,17 @@
-import { useQuery } from "@tanstack/react-query"
-import { IconLoader2 } from "@tabler/icons-react"
-import { backgroundSyncStatusQueryOptions } from "@/lib/spotify-query-options"
+import { useQuery } from '@tanstack/react-query'
+import { IconLoader2 } from '@tabler/icons-react'
+import { backgroundSyncStatusQueryOptions } from '@/lib/spotify-query-options'
 
 export function formatRelative(iso: string | null) {
   if (!iso) {
-    return "never"
+    return 'never'
   }
 
   const date = new Date(iso)
   const diffMs = Date.now() - date.getTime()
 
   if (diffMs < 60_000) {
-    return "just now"
+    return 'just now'
   }
 
   const minutes = Math.floor(diffMs / 60_000)
@@ -29,7 +29,8 @@ export function formatRelative(iso: string | null) {
 }
 
 const pillClass =
-  "flex h-9 items-center gap-2 rounded-[10px] border border-border bg-card px-3 text-xs font-medium text-muted-foreground shadow-xs"
+  // A status, not a control: no surface, just the dot and its word
+  'flex h-8 items-center gap-2 px-1 text-[13px] text-muted-foreground'
 
 export function BackgroundSyncStatus() {
   const statusQuery = useQuery(backgroundSyncStatusQueryOptions())
@@ -49,7 +50,7 @@ export function BackgroundSyncStatus() {
 
   if (statusQuery.data.isRunning) {
     return (
-      <div className={`${pillClass} border-primary/30 bg-primary/10 text-primary`}>
+      <div className={`${pillClass} text-primary`}>
         <IconLoader2 className="size-3 animate-spin" />
         <span>Syncing…</span>
       </div>
@@ -67,9 +68,9 @@ export function BackgroundSyncStatus() {
       title={lastSync ? `Last synced ${formatRelative(lastSync)}` : undefined}
     >
       <span
-        className={`size-1.5 rounded-full ${failed ? "bg-amber-500" : "bg-emerald-500"}`}
+        className={`size-1.5 rounded-full ${failed ? 'bg-amber-500' : 'bg-emerald-500'}`}
       />
-      <span>{failed ? "Sync delayed" : "Synced"}</span>
+      <span>{failed ? 'Sync delayed' : 'Synced'}</span>
     </div>
   )
 }

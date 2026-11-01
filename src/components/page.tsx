@@ -1,8 +1,8 @@
-import { Link } from "@tanstack/react-router"
-import { IconChevronRight } from "@tabler/icons-react"
-import type * as React from "react"
-import { describeSource } from "@/lib/format"
-import { cn } from "@/lib/utils"
+import { Link } from '@tanstack/react-router'
+import { IconChevronRight } from '@tabler/icons-react'
+import type * as React from 'react'
+import { describeSource } from '@/lib/format'
+import { cn } from '@/lib/utils'
 
 export function PageHeader({
   title,
@@ -23,7 +23,9 @@ export function PageHeader({
           <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex items-center gap-2">{actions}</div>
+      ) : null}
     </div>
   )
 }
@@ -32,11 +34,14 @@ export function Breadcrumbs({
   parent,
   current,
 }: {
-  parent: { label: string; to: "/top-tracks" | "/top-artists" | "/playlists" }
+  parent: { label: string; to: '/top-tracks' | '/top-artists' | '/playlists' }
   current: string
 }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
+    <nav
+      aria-label="Breadcrumb"
+      className="flex min-w-0 items-center gap-1.5 text-[13px]"
+    >
       <Link
         to={parent.to}
         className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
@@ -44,14 +49,21 @@ export function Breadcrumbs({
         {parent.label}
       </Link>
       <IconChevronRight className="size-3.5 shrink-0 text-muted-foreground/50" />
-      <span className="truncate font-medium text-foreground" aria-current="page">
+      <span
+        className="truncate font-medium text-foreground"
+        aria-current="page"
+      >
         {current}
       </span>
     </nav>
   )
 }
 
-/** Bordered surface used for every content block. */
+/**
+ * A titled section. Unboxed by default: sections sit on the page and are
+ * grouped by space, not by borders. `surface` puts the page's one leading
+ * object on a soft fill so the eye lands there first.
+ */
 export function Panel({
   title,
   description,
@@ -59,7 +71,7 @@ export function Panel({
   className,
   bodyClassName,
   children,
-  flush,
+  surface,
 }: {
   title?: React.ReactNode
   description?: React.ReactNode
@@ -67,42 +79,35 @@ export function Panel({
   className?: string
   bodyClassName?: string
   children: React.ReactNode
-  /** Drop body padding (e.g. for tables that run edge to edge). */
-  flush?: boolean
+  surface?: boolean
 }) {
   const hasHeader = Boolean(title || action)
   return (
     <section
       className={cn(
-        "min-w-0 rounded-2xl border border-border bg-card shadow-xs",
+        'min-w-0',
+        surface && 'rounded-2xl bg-muted/60 p-5 sm:p-6 dark:bg-card',
         className,
       )}
     >
       {hasHeader ? (
-        <div
-          className={cn(
-            "flex items-start justify-between gap-4 px-5 pt-5 sm:px-6",
-            flush ? "border-b border-border pb-4" : "pb-4",
-          )}
-        >
-          <div className="min-w-0">
-            {title ? <h2 className="text-base font-semibold">{title}</h2> : null}
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {title ? (
+              <h2 className="text-[15px] leading-snug font-semibold">
+                {title}
+              </h2>
+            ) : null}
             {description ? (
-              <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
+              <p className="text-[13px] leading-snug text-muted-foreground">
+                {description}
+              </p>
             ) : null}
           </div>
           {action}
         </div>
       ) : null}
-      <div
-        className={cn(
-          !flush && "px-5 pb-5 sm:px-6",
-          !flush && !hasHeader && "pt-5",
-          bodyClassName,
-        )}
-      >
-        {children}
-      </div>
+      <div className={bodyClassName}>{children}</div>
     </section>
   )
 }
@@ -131,7 +136,7 @@ export function Eyebrow({
   return (
     <span
       className={cn(
-        "block text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase",
+        'block text-[13px] leading-snug font-medium text-muted-foreground',
         className,
       )}
     >
@@ -140,7 +145,7 @@ export function Eyebrow({
   )
 }
 
-/** Hero banner for artist / track / playlist detail pages. */
+/** Header for artist / track / playlist detail pages. */
 export function DetailHero({
   art,
   eyebrow,
@@ -155,39 +160,35 @@ export function DetailHero({
   stats?: Array<{ label: string; value: React.ReactNode }>
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[20px] border border-border bg-card p-5 sm:p-8 lg:px-10">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.14] via-primary/[0.03] to-transparent"
-      />
-      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-10">
-        <div className="flex min-w-0 flex-1 items-center gap-5 sm:gap-8">
-          <div className="size-20 shrink-0 sm:size-[132px]">{art}</div>
-          <div className="flex min-w-0 flex-col gap-1.5 sm:gap-2">
-            <Eyebrow className="text-primary">{eyebrow}</Eyebrow>
-            <h1 className="text-2xl leading-tight font-bold tracking-[-0.03em] break-words sm:text-4xl">
-              {title}
-            </h1>
-            {subtitle ? (
-              <p className="truncate text-sm text-muted-foreground sm:text-base">{subtitle}</p>
-            ) : null}
-          </div>
+    <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:gap-10">
+      <div className="flex min-w-0 flex-1 items-center gap-5 sm:gap-7">
+        <div className="size-20 shrink-0 sm:size-32">{art}</div>
+        <div className="flex min-w-0 flex-col gap-1">
+          <Eyebrow className="text-primary">{eyebrow}</Eyebrow>
+          <h1 className="text-2xl leading-tight font-bold tracking-[-0.03em] break-words sm:text-4xl">
+            {title}
+          </h1>
+          {subtitle ? (
+            <p className="truncate text-sm text-muted-foreground sm:text-[15px]">
+              {subtitle}
+            </p>
+          ) : null}
         </div>
-        {stats?.length ? (
-          <dl className="grid grid-cols-3 gap-2 border-t border-border pt-5 lg:flex lg:gap-12 lg:border-0 lg:pt-0">
-            {stats.map(stat => (
-              <div key={stat.label} className="flex flex-col gap-1 lg:items-center lg:gap-2">
-                <dt className="order-2 text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
-                  {stat.label}
-                </dt>
-                <dd className="order-1 text-xl font-bold tracking-[-0.03em] whitespace-nowrap tabular-nums sm:text-3xl lg:text-[40px] lg:leading-10">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
       </div>
+      {stats?.length ? (
+        <dl className="grid grid-cols-3 gap-4 lg:flex lg:gap-10">
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex flex-col gap-0.5">
+              <dt className="text-[13px] text-muted-foreground">
+                {stat.label}
+              </dt>
+              <dd className="text-xl font-semibold tracking-[-0.02em] whitespace-nowrap tabular-nums sm:text-2xl">
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </section>
   )
 }
@@ -206,12 +207,12 @@ export function DetailRow({
   accent?: boolean
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+    <div className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
       <dt className="text-[13px] text-muted-foreground">{label}</dt>
       <dd
         className={cn(
-          "text-[15px] font-semibold tabular-nums",
-          accent && "text-primary",
+          'text-sm font-semibold tabular-nums',
+          accent && 'text-primary',
         )}
       >
         {value}
@@ -236,25 +237,31 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-6 py-12 text-center",
+        'flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-muted/60 px-6 py-12 text-center dark:bg-card',
         className,
       )}
     >
       {icon ? (
-        <div className="mb-1 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-background text-muted-foreground">
           {icon}
         </div>
       ) : null}
       <p className="text-sm font-medium">{title}</p>
       {description ? (
-        <p className="max-w-sm text-[13px] text-muted-foreground">{description}</p>
+        <p className="max-w-sm text-[13px] text-muted-foreground">
+          {description}
+        </p>
       ) : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
   )
 }
 
-export function ErrorNotice({ message }: { message: string | null | undefined }) {
+export function ErrorNotice({
+  message,
+}: {
+  message: string | null | undefined
+}) {
   if (!message) return null
   return (
     <div
@@ -285,8 +292,8 @@ export function SourceBadge({ source }: { source: string }) {
     <span className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap text-muted-foreground">
       <span
         className={cn(
-          "size-1.5 rounded-full",
-          tone === "live" ? "bg-emerald-500" : "bg-sky-500",
+          'size-1.5 rounded-full',
+          tone === 'live' ? 'bg-emerald-500' : 'bg-sky-500',
         )}
       />
       {label}

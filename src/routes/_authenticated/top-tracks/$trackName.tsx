@@ -10,7 +10,12 @@ import {
   topTracksQueryOptions,
 } from '@/lib/spotify-query-options'
 import { StatsRangeSelector } from '@/components/stats-range-selector'
-import { HourChart, TrendChart, fillDayGaps, peakHour } from '@/components/charts'
+import {
+  HourChart,
+  TrendChart,
+  fillDayGaps,
+  peakHour,
+} from '@/components/charts'
 import {
   Breadcrumbs,
   DetailHero,
@@ -64,9 +69,15 @@ function TrackDetailPage() {
   const timeline = useMemo(
     () =>
       fillDayGaps(
-        (detail?.byDay ?? []).map(d => ({ day: d.day, value: Number(d.plays) })),
-        day => ({ day, value: 0 }),
-        { from: range === 'all' ? undefined : statsRangeStart(range), to: new Date() },
+        (detail?.byDay ?? []).map((d) => ({
+          day: d.day,
+          value: Number(d.plays),
+        })),
+        (day) => ({ day, value: 0 }),
+        {
+          from: range === 'all' ? undefined : statsRangeStart(range),
+          to: new Date(),
+        },
       ),
     [detail, range],
   )
@@ -75,23 +86,28 @@ function TrackDetailPage() {
   const totalMs = Number(detail?.totals.totalMsPlayed ?? 0)
   const activeDays = detail?.byDay.length ?? 0
   const peakDay = detail?.byDay.length
-    ? detail.byDay.reduce((a, b) => (Number(a.plays) >= Number(b.plays) ? a : b))
+    ? detail.byDay.reduce((a, b) =>
+        Number(a.plays) >= Number(b.plays) ? a : b,
+      )
     : null
   const busiestHour = detail ? peakHour(detail.byHour) : null
   const allPlays = tracks.reduce((sum, t) => sum + Number(t.plays), 0)
   const resolvedArtist = artistName ?? trackData?.artistName
 
   return (
-    <div className="space-y-4 lg:space-y-5">
+    <div className="space-y-8 lg:space-y-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Breadcrumbs parent={{ label: 'Top Tracks', to: '/top-tracks' }} current={trackName} />
+        <Breadcrumbs
+          parent={{ label: 'Top tracks', to: '/top-tracks' }}
+          current={trackName}
+        />
         <StatsRangeSelector value={range} onChange={setRange} />
       </div>
 
       <DetailHero
         art={
-          <div className="flex size-full items-center justify-center rounded-xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 shadow-lg">
-            <IconMusic className="size-9 text-primary-foreground/70 sm:size-12" />
+          <div className="flex size-full items-center justify-center rounded-xl bg-muted shadow-md">
+            <IconMusic className="size-9 text-muted-foreground/60 sm:size-12" />
           </div>
         }
         eyebrow={`${rank > 0 ? `#${rank} track · ` : ''}${statsRangeLabel(range)}`}
@@ -114,24 +130,33 @@ function TrackDetailPage() {
                 { label: 'Listened', value: formatDurationShort(totalMs) },
                 {
                   label: 'Avg. listen',
-                  value: totalPlays ? formatDurationShort(totalMs / totalPlays) : '—',
+                  value: totalPlays
+                    ? formatDurationShort(totalMs / totalPlays)
+                    : '—',
                 },
               ]
             : undefined
         }
       />
 
-      <ErrorNotice message={detailQuery.error instanceof Error ? detailQuery.error.message : null} />
+      <ErrorNotice
+        message={
+          detailQuery.error instanceof Error ? detailQuery.error.message : null
+        }
+      />
 
       {detailQuery.isPending ? (
-        <div className="space-y-4">
+        <div className="space-y-10">
           <Skeleton className="h-[340px] w-full rounded-2xl" />
           <Skeleton className="h-[280px] w-full rounded-2xl" />
         </div>
       ) : detail && totalPlays ? (
-        <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-            <Panel title="Play frequency" description={`Times played per day · ${statsRangeLabel(range)}`}>
+        <div className="space-y-10">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <Panel
+              title="Play frequency"
+              description={`Times played per day · ${statsRangeLabel(range)}`}
+            >
               <TrendChart data={timeline} label="Plays" />
             </Panel>
 
@@ -143,30 +168,50 @@ function TrackDetailPage() {
                 />
                 <DetailRow
                   label="Peak day"
-                  value={peakDay ? `${formatDayShort(peakDay.day)} · ${peakDay.plays}` : '—'}
+                  value={
+                    peakDay
+                      ? `${formatDayShort(peakDay.day)} · ${peakDay.plays}`
+                      : '—'
+                  }
                   accent
                 />
                 <DetailRow
                   label="Usually played"
-                  value={busiestHour !== null ? `~${formatHourLong(busiestHour)}` : '—'}
+                  value={
+                    busiestHour !== null
+                      ? `~${formatHourLong(busiestHour)}`
+                      : '—'
+                  }
                 />
                 <DetailRow
                   label="First played"
-                  value={detail.byDay.length ? formatDayShort(detail.byDay[0].day) : '—'}
+                  value={
+                    detail.byDay.length
+                      ? formatDayShort(detail.byDay[0].day)
+                      : '—'
+                  }
                 />
                 <DetailRow
                   label="Last played"
-                  value={detail.recent.length ? formatRelativeDay(new Date(detail.recent[0].playedAt)) : '—'}
+                  value={
+                    detail.recent.length
+                      ? formatRelativeDay(new Date(detail.recent[0].playedAt))
+                      : '—'
+                  }
                 />
                 <DetailRow
                   label="Share of all plays"
-                  value={allPlays ? `${((totalPlays / allPlays) * 100).toFixed(1)}%` : '—'}
+                  value={
+                    allPlays
+                      ? `${((totalPlays / allPlays) * 100).toFixed(1)}%`
+                      : '—'
+                  }
                 />
               </DetailRows>
             </Panel>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-10 lg:grid-cols-2">
             <Panel
               title="When you play this track"
               description={
@@ -178,15 +223,25 @@ function TrackDetailPage() {
               <HourChart data={detail.byHour} />
             </Panel>
 
-            <Panel title="Recent plays" action={<PanelLink to="/recent">View all</PanelLink>}>
+            <Panel
+              title="Recent plays"
+              action={<PanelLink to="/recent">View all</PanelLink>}
+            >
               {detail.recent.length ? (
-                <ul className="divide-y divide-border">
-                  {detail.recent.slice(0, 8).map(item => {
+                <ul className="-mx-3">
+                  {detail.recent.slice(0, 8).map((item) => {
                     return (
-                      <li key={item.id} className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium">{formatRelativeDay(new Date(item.playedAt))}</p>
-                          <p className="text-xs text-muted-foreground tabular-nums">{formatTime(item.playedAt)}</p>
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-muted/70"
+                      >
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <p className="text-sm leading-snug font-medium">
+                            {formatRelativeDay(new Date(item.playedAt))}
+                          </p>
+                          <p className="text-[13px] leading-snug text-muted-foreground tabular-nums">
+                            {formatTime(item.playedAt)}
+                          </p>
                         </div>
                         <SourceBadge source={item.source} />
                       </li>
@@ -194,7 +249,9 @@ function TrackDetailPage() {
                   })}
                 </ul>
               ) : (
-                <p className="text-sm text-muted-foreground">No recent plays found.</p>
+                <p className="text-sm text-muted-foreground">
+                  No recent plays found.
+                </p>
               )}
             </Panel>
           </div>

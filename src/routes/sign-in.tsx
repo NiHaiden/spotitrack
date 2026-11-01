@@ -1,64 +1,69 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
-import { Button } from "@/components/ui/button"
-import { signIn } from "@/lib/auth-client"
-import { getSession } from "@/lib/auth-queries"
-import { IconBrandSpotify } from "@tabler/icons-react"
-import { formatVersion } from "@/lib/version"
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { signIn } from '@/lib/auth-client'
+import { getSession } from '@/lib/auth-queries'
+import { IconBrandSpotify } from '@tabler/icons-react'
+import { formatVersion } from '@/lib/version'
+import { SignInDemo } from '@/components/sign-in-demo/sign-in-demo'
+import { useTheme } from '@/components/theme-provider'
 
-export const Route = createFileRoute("/sign-in")({
+export const Route = createFileRoute('/sign-in')({
   beforeLoad: async () => {
     const session = await getSession()
     if (session?.user) {
-      throw redirect({ to: "/dashboard" })
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: SignInPage,
 })
 
 function SignInPage() {
+  const { theme } = useTheme()
   return (
     <div className="flex min-h-svh bg-background">
-      {/* Left side — branding */}
-      <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
-        {/* Decorative bars — echoing the icon waveform */}
-        <div className="pointer-events-none absolute inset-0 flex items-end justify-center gap-6 px-24 pb-0 opacity-[0.08]">
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "30%" }} />
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "50%" }} />
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "70%" }} />
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "90%" }} />
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "55%" }} />
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "40%" }} />
-          <div className="w-16 rounded-t-2xl bg-current" style={{ height: "65%" }} />
+      {/* Left side — branding, with the dashboard demo running off the bottom */}
+      <div className="relative hidden flex-1 flex-col overflow-hidden bg-primary text-primary-foreground lg:flex">
+        <div className="relative p-12 pb-8">
+          <div className="flex items-center gap-3">
+            <img
+              src="/icon.svg"
+              alt="SpotiTrack"
+              className="size-10 rounded-lg"
+            />
+            <span className="text-lg font-bold tracking-tight">SpotiTrack</span>
+          </div>
+
+          <div className="mt-14 max-w-lg">
+            <h1 className="text-4xl font-bold leading-tight tracking-tight">
+              Your listening,
+              <br />
+              beautifully tracked.
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-primary-foreground/70">
+              Discover patterns in your music taste, explore your top artists
+              and tracks, and watch your listening history unfold over time.
+            </p>
+          </div>
         </div>
 
-        <div className="relative flex items-center gap-3">
-          <img src="/icon.svg" alt="SpotiTrack" className="size-10 rounded-lg" />
-          <span className="text-lg font-bold tracking-tight">SpotiTrack</span>
+        {/* The panel is the demo's ground and crop: the window runs off its right and bottom */}
+        <div className="mt-auto w-full pl-12" aria-hidden="true">
+          <div className="max-w-[704px]">
+            <SignInDemo theme={theme} />
+          </div>
         </div>
-
-        <div className="relative max-w-lg">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight">
-            Your listening,
-            <br />
-            beautifully tracked.
-          </h1>
-          <p className="mt-4 text-base leading-relaxed text-primary-foreground/70">
-            Discover patterns in your music taste, explore your top artists and
-            tracks, and watch your listening history unfold over time.
-          </p>
-        </div>
-
-        <p className="relative text-xs text-primary-foreground/40">
-          {formatVersion()}
-        </p>
       </div>
 
       {/* Right side — sign in */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 lg:max-w-xl">
+      <div className="relative flex flex-1 flex-col items-center justify-center px-6 lg:max-w-sm xl:max-w-md">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="mb-10 flex items-center gap-3 lg:hidden">
-            <img src="/icon.svg" alt="SpotiTrack" className="size-9 rounded-lg" />
+            <img
+              src="/icon.svg"
+              alt="SpotiTrack"
+              className="size-9 rounded-lg"
+            />
             <span className="text-lg font-bold tracking-tight">SpotiTrack</span>
           </div>
 
@@ -72,8 +77,8 @@ function SignInPage() {
             size="lg"
             onClick={async () => {
               await signIn.social({
-                provider: "spotify",
-                callbackURL: "/dashboard",
+                provider: 'spotify',
+                callbackURL: '/dashboard',
               })
             }}
           >
@@ -87,6 +92,10 @@ function SignInPage() {
             Revoke access anytime in your Spotify settings.
           </p>
         </div>
+
+        <p className="absolute bottom-6 text-xs text-muted-foreground/40">
+          {formatVersion()}
+        </p>
       </div>
     </div>
   )

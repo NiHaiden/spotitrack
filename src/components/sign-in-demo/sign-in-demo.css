@@ -1,0 +1,345 @@
+/* SpotiTrack's look: DM Sans, its orange, its rounded panels */
+.stk .ss-stage {
+  --ss-font: 'DM Sans Variable', 'DM Sans', system-ui, sans-serif;
+  --ss-radius-lg: 14px;
+  /* No ground and no mask: the sign-in panel is the ground, and its edges
+     crop the window off the right and the bottom */
+  background: transparent;
+}
+
+/* Corner bleed: inset by the card's half, off the right and the bottom */
+.stk .stk-win {
+  position: absolute;
+  top: 0;
+  left: 120px;
+  width: 1000px;
+  box-shadow: var(--ss-shadow-hero);
+}
+
+.stk .stk-nav {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+}
+
+.stk .stk-nav__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--ss-icon-faint);
+}
+
+.stk .stk-nav__row[data-on] {
+  background: var(--ss-accent-soft);
+  color: var(--ss-accent);
+}
+
+.stk .stk-nav__row svg {
+  flex: none;
+}
+
+.stk .stk-body {
+  display: grid;
+  grid-template-columns: 348px 300px;
+  /* Wider between columns: at the narrowest panel the page edge falls in this gap */
+  gap: 14px 36px;
+  align-content: start;
+  min-height: 460px;
+  padding: 16px;
+  background: var(--ss-surface);
+}
+
+.stk .stk-panel {
+  display: grid;
+  align-content: start;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--ss-line);
+  border-radius: var(--ss-radius-lg);
+}
+
+.stk .stk-panel--below {
+  gap: 9px;
+  padding-bottom: 80px;
+}
+
+.stk .stk-panel__title {
+  color: var(--ss-text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.stk .stk-read {
+  display: grid;
+  gap: 2px;
+  margin: 12px 0 14px;
+}
+
+.stk .stk-read__label {
+  color: var(--ss-text);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.stk .stk-read__value {
+  color: var(--ss-text-strong);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stk .stk-plot {
+  position: relative;
+}
+
+.stk .stk-hair {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--ss-line);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.stk .stk-dot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border: 2px solid var(--ss-surface);
+  border-radius: 50%;
+  background: var(--ss-accent);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* The selected day: the dashboard's open ring */
+.stk .stk-ring {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border: 2px solid var(--ss-accent);
+  border-radius: 50%;
+  background: var(--ss-surface);
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 0.2s ease,
+    scale 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.stk .stk-hair[data-on],
+.stk .stk-dot[data-on],
+.stk .stk-ring[data-on] {
+  opacity: 1;
+  scale: 1;
+}
+
+.stk .stk-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--ss-text-faint);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* The satellite: the day's top tracks, straddling the window's sidebar */
+.stk .stk-card {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  width: 240px;
+  padding: 14px 12px 10px;
+  border-radius: var(--ss-radius-lg);
+  background: var(--ss-surface);
+  box-shadow: var(--ss-shadow-satellite);
+}
+
+.stk .ss-stage[data-theme='dark'] .stk-card {
+  background: var(--ss-raised);
+}
+
+.stk .stk-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 8px;
+}
+
+.stk .stk-eyebrow {
+  display: inline-flex;
+  color: var(--ss-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.stk .stk-link {
+  margin: 0 -8px;
+  padding: 0 8px;
+  color: var(--ss-accent);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.stk .stk-tracks {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stk .stk-track {
+  display: grid;
+  grid-template-columns: 16px 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 4px;
+}
+
+.stk .stk-track__n {
+  color: var(--ss-accent);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stk .stk-track__name {
+  overflow: hidden;
+  color: var(--ss-text-strong);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.stk .stk-track__plays {
+  color: var(--ss-text-faint);
+  font-size: 11px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Album art: one tile per row, the cover crossfading when the track changes */
+.stk .stk-art {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.stk .stk-art i {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.stk .stk-art i[data-on] {
+  opacity: 1;
+}
+
+.stk .stk-art--1 {
+  background: radial-gradient(
+    circle at 30% 30%,
+    #f0a35e,
+    #b34a1c 55%,
+    #4a1d0e 100%
+  );
+}
+.stk .stk-art--2 {
+  background: linear-gradient(160deg, #5f7f91 0%, #2b3d48 60%, #1b252c 100%);
+}
+.stk .stk-art--3 {
+  background: radial-gradient(
+    circle at 70% 75%,
+    #d9c38f,
+    #7a6440 45%,
+    #2a241c 85%
+  );
+}
+.stk .stk-art--4 {
+  background: radial-gradient(
+    circle at 50% 110%,
+    #ffcf7a 0%,
+    #e0761a 35%,
+    #5a1f0a 80%
+  );
+}
+.stk .stk-art--5 {
+  background: linear-gradient(200deg, #8aa58a, #2c382d 70%);
+}
+
+/* The right column: filler that the page's edge cuts */
+.stk .stk-side {
+  display: grid;
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  gap: 14px;
+  align-content: start;
+}
+
+.stk .stk-lines {
+  display: grid;
+  gap: 7px;
+}
+
+.stk .stk-artist {
+  grid-auto-flow: column;
+  justify-content: start;
+  align-items: center;
+  gap: 12px;
+}
+
+.stk .stk-artist__disc {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    #f59e5b,
+    #c2410c 55%,
+    #6b1d3a 100%
+  );
+}
+
+.stk .stk-recent {
+  gap: 12px;
+  padding-bottom: 80px;
+}
+
+.stk .stk-recent__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stk .stk-recent__tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--ss-canvas);
+  color: var(--ss-icon-faint);
+}

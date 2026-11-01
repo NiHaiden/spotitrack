@@ -29,9 +29,9 @@ function TopArtistsPage() {
   const totalPlays = artists.reduce((sum, a) => sum + Number(a.plays), 0)
 
   return (
-    <div className="space-y-6 lg:space-y-7">
+    <div className="space-y-8 lg:space-y-10">
       <PageHeader
-        title="Top Artists"
+        title="Top artists"
         description={
           range === 'all'
             ? 'Artists you listen to the most, all time'
@@ -41,93 +41,91 @@ function TopArtistsPage() {
       />
 
       <ErrorNotice
-        message={artistsQuery.error instanceof Error ? artistsQuery.error.message : null}
+        message={
+          artistsQuery.error instanceof Error
+            ? artistsQuery.error.message
+            : null
+        }
       />
 
       {artistsQuery.isPending ? (
         <>
           <Skeleton className="h-44 w-full rounded-2xl" />
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[4/5] w-full rounded-2xl" />
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square w-full rounded-full" />
             ))}
           </div>
         </>
       ) : topArtist ? (
         <>
-          {/* #1 Artist hero */}
+          {/* The #1 artist leads, on the page's one soft surface */}
           <Link
             to="/top-artists/$artistName"
             params={{ artistName: encodeURIComponent(topArtist.artistName) }}
-            className="group relative block overflow-hidden rounded-[20px] border border-border bg-card p-5 shadow-xs transition-colors hover:border-primary/40 sm:p-8"
+            className="group flex items-center gap-5 rounded-2xl bg-muted/60 p-5 transition-colors hover:bg-muted sm:gap-8 sm:p-6 dark:bg-card dark:hover:bg-muted"
           >
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.14] via-primary/[0.03] to-transparent"
-            />
-            <div className="relative flex items-center gap-5 sm:gap-8">
-              <Avatar className="size-24 shrink-0 shadow-lg ring-4 ring-background sm:size-[132px]">
-                <AvatarImage
-                  src={topArtist.imageUrl || undefined}
-                  alt={topArtist.artistName}
-                  className="object-cover"
-                />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-4xl font-bold text-primary-foreground sm:text-5xl">
-                  {topArtist.artistName.slice(0, 1).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <Eyebrow className="text-primary">#1 artist</Eyebrow>
-                <h2 className="truncate text-2xl leading-tight font-bold tracking-[-0.03em] transition-colors group-hover:text-primary sm:text-[32px]">
-                  {topArtist.artistName}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {plural(Number(topArtist.plays), 'play')} ·{' '}
-                  {formatDurationShort(Number(topArtist.totalMsPlayed))} listened
-                  {totalPlays ? (
-                    <span className="hidden sm:inline">
-                      {' '}
-                      · {Math.round((Number(topArtist.plays) / totalPlays) * 100)}% of your plays
-                    </span>
-                  ) : null}
-                </p>
-              </div>
-              <span className="hidden text-6xl leading-none font-bold text-foreground/10 tabular-nums lg:block">
-                01
-              </span>
+            <Avatar className="size-24 shrink-0 sm:size-40">
+              <AvatarImage
+                src={topArtist.imageUrl || undefined}
+                alt=""
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-background text-4xl font-semibold text-muted-foreground sm:text-5xl">
+                {topArtist.artistName.slice(0, 1).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <Eyebrow className="text-primary">#1 artist</Eyebrow>
+              <h2 className="truncate text-2xl leading-tight font-bold tracking-[-0.03em] sm:text-[32px]">
+                {topArtist.artistName}
+              </h2>
+              <p className="text-sm text-muted-foreground tabular-nums">
+                {plural(Number(topArtist.plays), 'play')} ·{' '}
+                {formatDurationShort(Number(topArtist.totalMsPlayed))} listened
+                {totalPlays ? (
+                  <span className="hidden sm:inline">
+                    {' '}
+                    · {Math.round((Number(topArtist.plays) / totalPlays) * 100)}
+                    % of your plays
+                  </span>
+                ) : null}
+              </p>
             </div>
           </Link>
 
-          {/* Rest of artists */}
+          {/* The rest: a ranked grid of faces, grouped by space, no boxes */}
           {restArtists.length ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="-mx-3 grid grid-cols-2 gap-y-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
               {restArtists.map((artist, index) => {
                 const rank = index + 2
                 return (
                   <Link
                     key={`${artist.artistName}-${rank}`}
                     to="/top-artists/$artistName"
-                    params={{ artistName: encodeURIComponent(artist.artistName) }}
-                    className="group relative flex min-w-0 flex-col items-center gap-3 rounded-2xl border border-border bg-card p-4 pt-8 text-center shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:gap-4 sm:p-5 sm:pt-9"
+                    params={{
+                      artistName: encodeURIComponent(artist.artistName),
+                    }}
+                    className="group flex min-w-0 flex-col gap-3 rounded-xl p-3 transition-colors hover:bg-muted/70"
                   >
-                    <span className="absolute top-3 left-4 text-xs font-bold text-muted-foreground tabular-nums">
-                      {String(rank).padStart(2, '0')}
-                    </span>
-                    <Avatar className="aspect-square size-auto w-full max-w-[132px] shrink-0">
+                    <Avatar className="aspect-square size-auto w-full">
                       <AvatarImage
                         src={artist.imageUrl || undefined}
-                        alt={artist.artistName}
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        alt=""
+                        className="object-cover"
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/30 to-muted text-4xl font-bold text-muted-foreground">
+                      <AvatarFallback className="bg-muted text-4xl font-semibold text-muted-foreground">
                         {artist.artistName.slice(0, 1).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex w-full min-w-0 flex-col gap-0.5">
-                      <p className="truncate text-[15px] font-semibold transition-colors group-hover:text-primary">
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <p className="truncate text-[15px] leading-snug font-semibold">
+                        <span className="font-medium text-muted-foreground tabular-nums">
+                          {String(rank).padStart(2, '0')}
+                        </span>{' '}
                         {artist.artistName}
                       </p>
-                      <p className="truncate text-[13px] text-muted-foreground">
+                      <p className="truncate text-[13px] leading-snug text-muted-foreground tabular-nums">
                         {plural(Number(artist.plays), 'play')} ·{' '}
                         {formatDurationShort(Number(artist.totalMsPlayed))}
                       </p>

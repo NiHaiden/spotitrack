@@ -1,5 +1,5 @@
-import * as React from "react"
-import { Link, useRouterState } from "@tanstack/react-router"
+import * as React from 'react'
+import { Link, useRouterState } from '@tanstack/react-router'
 
 import {
   IconChartBar,
@@ -8,48 +8,48 @@ import {
   IconPlaylist,
   IconSettings,
   IconUsers,
-} from "@tabler/icons-react"
-import { NavUser } from "@/components/nav-user"
+} from '@tabler/icons-react'
+import { NavUser } from '@/components/nav-user'
+import { cn } from '@/lib/utils'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 const navMain = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: <IconChartBar className="size-5" />,
+    title: 'Dashboard',
+    url: '/dashboard',
+    icon: <IconChartBar className="size-4" />,
   },
   {
-    title: "Top Tracks",
-    url: "/top-tracks",
-    icon: <IconMusic className="size-5" />,
+    title: 'Top tracks',
+    url: '/top-tracks',
+    icon: <IconMusic className="size-4" />,
   },
   {
-    title: "Top Artists",
-    url: "/top-artists",
-    icon: <IconUsers className="size-5" />,
+    title: 'Top artists',
+    url: '/top-artists',
+    icon: <IconUsers className="size-4" />,
   },
   {
-    title: "Recent Plays",
-    url: "/recent",
-    icon: <IconClock className="size-5" />,
+    title: 'Recent plays',
+    url: '/recent',
+    icon: <IconClock className="size-4" />,
   },
   {
-    title: "Playlists",
-    url: "/playlists",
-    icon: <IconPlaylist className="size-5" />,
+    title: 'Playlists',
+    url: '/playlists',
+    icon: <IconPlaylist className="size-4" />,
   },
 ]
 
@@ -85,9 +85,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="mb-1 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-            Overview
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navMain.map((item) => (
@@ -96,7 +93,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     isActive={isActive(item.url)}
                     render={<Link to={item.url} onClick={closeOnMobile} />}
                   >
-                    {item.icon}
+                    <span
+                      className={cn(
+                        'flex text-muted-foreground',
+                        isActive(item.url) && 'text-primary',
+                      )}
+                    >
+                      {item.icon}
+                    </span>
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -109,10 +113,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              isActive={isActive("/settings")}
+              isActive={isActive('/settings')}
               render={<Link to="/settings" onClick={closeOnMobile} />}
             >
-              <IconSettings className="size-5" />
+              <span
+                className={cn(
+                  'flex text-muted-foreground',
+                  isActive('/settings') && 'text-primary',
+                )}
+              >
+                <IconSettings className="size-4" />
+              </span>
               <span>Settings</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
