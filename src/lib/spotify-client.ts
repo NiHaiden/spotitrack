@@ -1,19 +1,19 @@
-import { createIsomorphicFn } from "@tanstack/react-start"
-import { getRequestHeaders } from "@tanstack/react-start/server"
+import { createIsomorphicFn } from '@tanstack/react-start'
+import { getRequestHeaders } from '@tanstack/react-start/server'
 
 function resolveRequestUrl(input: string) {
-  if (input.startsWith("http://") || input.startsWith("https://")) {
+  if (input.startsWith('http://') || input.startsWith('https://')) {
     return input
   }
 
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return input
   }
 
   const baseUrl =
     process.env.INTERNAL_APP_URL ||
     process.env.BETTER_AUTH_URL ||
-    "http://localhost:3000"
+    'http://localhost:3000'
 
   return new URL(input, baseUrl).toString()
 }
@@ -25,11 +25,11 @@ const getServerForwardHeaders = createIsomorphicFn()
       const requestHeaders = getRequestHeaders()
 
       return {
-        ...(requestHeaders.get("cookie")
-          ? { cookie: requestHeaders.get("cookie") as string }
+        ...(requestHeaders.get('cookie')
+          ? { cookie: requestHeaders.get('cookie') as string }
           : {}),
-        ...(requestHeaders.get("authorization")
-          ? { authorization: requestHeaders.get("authorization") as string }
+        ...(requestHeaders.get('authorization')
+          ? { authorization: requestHeaders.get('authorization') as string }
           : {}),
       }
     } catch {
@@ -46,23 +46,23 @@ export async function apiFetch<T>(
   const response = await fetch(resolveRequestUrl(input), {
     ...init,
     headers: {
-      "content-type": "application/json",
+      'content-type': 'application/json',
       ...serverForwardHeaders,
       ...(init?.headers ?? {}),
     },
   })
 
   if (response.status === 401) {
-    if (typeof window === "undefined") {
-      const { redirect } = await import("@tanstack/react-router")
-      throw redirect({ to: "/sign-in" })
+    if (typeof window === 'undefined') {
+      const { redirect } = await import('@tanstack/react-router')
+      throw redirect({ to: '/sign-in' })
     }
 
-    if (!window.location.pathname.startsWith("/sign-in")) {
-      window.location.assign("/sign-in")
+    if (!window.location.pathname.startsWith('/sign-in')) {
+      window.location.assign('/sign-in')
     }
 
-    throw new Error("Unauthorized")
+    throw new Error('Unauthorized')
   }
 
   if (!response.ok) {
@@ -94,7 +94,7 @@ export function formatMs(ms: number) {
   if (hours > 0) {
     return `${hours}h ${minutes}m`
   }
-  return `${minutes}:${String(seconds).padStart(2, "0")}`
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
 export function formatDurationShort(ms: number) {
@@ -110,11 +110,11 @@ export function formatDurationShort(ms: number) {
 
 export function formatPlayedAt(dateString: string | Date) {
   const date =
-    typeof dateString === "string" ? new Date(dateString) : dateString
+    typeof dateString === 'string' ? new Date(dateString) : dateString
   return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(date)
 }

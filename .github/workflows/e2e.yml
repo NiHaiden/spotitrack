@@ -33,7 +33,7 @@ jobs:
           --health-retries 10
 
     env:
-      CI: "true"
+      CI: 'true'
       E2E_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/spotitrack_e2e
 
     steps:

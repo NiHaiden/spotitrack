@@ -1,8 +1,8 @@
-import { mkdirSync, writeFileSync } from "node:fs"
-import path from "node:path"
-import postgres from "postgres"
-import { drizzle } from "drizzle-orm/postgres-js"
-import { migrate } from "drizzle-orm/postgres-js/migrator"
+import { mkdirSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import postgres from 'postgres'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import {
   E2E_APP_URL,
   E2E_DATABASE_URL,
@@ -13,9 +13,9 @@ import {
   signCookieValue,
   testUser,
   tracks,
-} from "./fixtures.ts"
+} from './fixtures.ts'
 
-const STORAGE_STATE = path.join(import.meta.dirname, ".auth", "user.json")
+const STORAGE_STATE = path.join(import.meta.dirname, '.auth', 'user.json')
 
 async function resetDatabase(sql: postgres.Sql) {
   await sql.unsafe(`
@@ -24,7 +24,7 @@ async function resetDatabase(sql: postgres.Sql) {
     create schema public;
   `)
   await migrate(drizzle(sql), {
-    migrationsFolder: path.join(import.meta.dirname, "..", "drizzle"),
+    migrationsFolder: path.join(import.meta.dirname, '..', 'drizzle'),
   })
 }
 
@@ -35,7 +35,7 @@ async function seed(sql: postgres.Sql) {
 
   await sql`
     insert into "user" (id, name, email, email_verified, image)
-    values (${testUser.id}, ${testUser.name}, ${testUser.email}, true, ${coverUrl("avatar")})
+    values (${testUser.id}, ${testUser.name}, ${testUser.email}, true, ${coverUrl('avatar')})
   `
   await sql`
     insert into account (id, account_id, provider_id, user_id, access_token, refresh_token, access_token_expires_at, scope)
@@ -60,7 +60,7 @@ async function seed(sql: postgres.Sql) {
   `
   await sql`
     insert into spotify_track ${sql(
-      tracks.map(track => ({
+      tracks.map((track) => ({
         id: track.id,
         name: track.name,
         duration_ms: track.durationMs,
@@ -69,7 +69,10 @@ async function seed(sql: postgres.Sql) {
   `
   await sql`
     insert into spotify_track_artist ${sql(
-      tracks.map(track => ({ track_id: track.id, artist_id: track.artistId })),
+      tracks.map((track) => ({
+        track_id: track.id,
+        artist_id: track.artistId,
+      })),
     )}
   `
 
@@ -77,7 +80,7 @@ async function seed(sql: postgres.Sql) {
   for (let i = 0; i < plays.length; i += 500) {
     await sql`
       insert into spotify_play ${sql(
-        plays.slice(i, i + 500).map(play => ({
+        plays.slice(i, i + 500).map((play) => ({
           id: play.id,
           user_id: testUser.id,
           track_id: play.trackId,
@@ -112,11 +115,11 @@ export default async function globalSetup() {
           name: SESSION_COOKIE,
           value: signCookieValue(testUser.sessionToken),
           domain: hostname,
-          path: "/",
+          path: '/',
           expires: -1,
           httpOnly: true,
           secure: false,
-          sameSite: "Lax",
+          sameSite: 'Lax',
         },
       ],
       origins: [],

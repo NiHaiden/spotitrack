@@ -12,6 +12,8 @@ count.txt
 .vinxi
 todos.json
 your_spotify
+.pnpm-store
+.llm-wiki
 
 # Playwright
 /test-results

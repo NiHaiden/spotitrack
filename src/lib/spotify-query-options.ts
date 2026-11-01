@@ -1,6 +1,6 @@
-import { queryOptions } from "@tanstack/react-query"
-import { apiFetch } from "@/lib/spotify-client"
-import { StatsRange, statsRangeStart } from "@/lib/stats-range"
+import { queryOptions } from '@tanstack/react-query'
+import { apiFetch } from '@/lib/spotify-client'
+import { StatsRange, statsRangeStart } from '@/lib/stats-range'
 
 export type StatsOverview = {
   interval: {
@@ -39,11 +39,11 @@ export type StatsOverview = {
 }
 
 export type TopTracksResponse = {
-  items: StatsOverview["topTracks"]
+  items: StatsOverview['topTracks']
 }
 
 export type TopArtistsResponse = {
-  items: StatsOverview["topArtists"]
+  items: StatsOverview['topArtists']
 }
 
 export type RecentResponse = {
@@ -186,9 +186,9 @@ function rangeDates(range: StatsRange) {
   }
 }
 
-export const statsOverviewQueryOptions = (range: StatsRange = "30d") =>
+export const statsOverviewQueryOptions = (range: StatsRange = '30d') =>
   queryOptions({
-    queryKey: ["stats", "overview", range],
+    queryKey: ['stats', 'overview', range],
     queryFn: () =>
       apiFetch<StatsOverview>(
         `/api/stats/overview?${buildStatsParams(range, 10)}`,
@@ -197,9 +197,9 @@ export const statsOverviewQueryOptions = (range: StatsRange = "30d") =>
     refetchInterval: 60_000,
   })
 
-export const topTracksQueryOptions = (range: StatsRange = "30d") =>
+export const topTracksQueryOptions = (range: StatsRange = '30d') =>
   queryOptions({
-    queryKey: ["stats", "top-tracks", range],
+    queryKey: ['stats', 'top-tracks', range],
     queryFn: () =>
       apiFetch<TopTracksResponse>(
         `/api/stats/top-tracks?${buildStatsParams(range, 50)}`,
@@ -208,9 +208,9 @@ export const topTracksQueryOptions = (range: StatsRange = "30d") =>
     refetchInterval: 60_000,
   })
 
-export const topArtistsQueryOptions = (range: StatsRange = "30d") =>
+export const topArtistsQueryOptions = (range: StatsRange = '30d') =>
   queryOptions({
-    queryKey: ["stats", "top-artists", range],
+    queryKey: ['stats', 'top-artists', range],
     queryFn: () =>
       apiFetch<TopArtistsResponse>(
         `/api/stats/top-artists?${buildStatsParams(range, 40)}`,
@@ -221,7 +221,7 @@ export const topArtistsQueryOptions = (range: StatsRange = "30d") =>
 
 export const recentQueryOptions = (limit = 100) =>
   queryOptions({
-    queryKey: ["stats", "recent", limit],
+    queryKey: ['stats', 'recent', limit],
     queryFn: () => apiFetch<RecentResponse>(`/api/stats/recent?limit=${limit}`),
     staleTime: 15_000,
     refetchInterval: 30_000,
@@ -229,10 +229,10 @@ export const recentQueryOptions = (limit = 100) =>
 
 export const dayStatsQueryOptions = (day: string | null, limit = 5) =>
   queryOptions({
-    queryKey: ["stats", "day", day, limit],
+    queryKey: ['stats', 'day', day, limit],
     queryFn: () => {
       if (!day) {
-        throw new Error("Day is required")
+        throw new Error('Day is required')
       }
       return apiFetch<DayStatsResponse>(
         `/api/stats/day?day=${encodeURIComponent(day)}&limit=${limit}`,
@@ -251,10 +251,10 @@ export const trackDetailQueryOptions = (
   } | null,
 ) =>
   queryOptions({
-    queryKey: ["stats", "track-detail", range, params],
+    queryKey: ['stats', 'track-detail', range, params],
     queryFn: () => {
       if (!params) {
-        throw new Error("Track params are required")
+        throw new Error('Track params are required')
       }
 
       const { start, end } = rangeDates(range)
@@ -264,18 +264,20 @@ export const trackDetailQueryOptions = (
       })
 
       if (params.trackId) {
-        search.set("trackId", params.trackId)
+        search.set('trackId', params.trackId)
       }
 
       if (params.trackName) {
-        search.set("trackName", params.trackName)
+        search.set('trackName', params.trackName)
       }
 
       if (params.artistName) {
-        search.set("artistName", params.artistName)
+        search.set('artistName', params.artistName)
       }
 
-      return apiFetch<TrackDetailResponse>(`/api/stats/track-detail?${search.toString()}`)
+      return apiFetch<TrackDetailResponse>(
+        `/api/stats/track-detail?${search.toString()}`,
+      )
     },
     enabled: Boolean(params),
     staleTime: 30_000,
@@ -286,10 +288,10 @@ export const artistDetailQueryOptions = (
   artistName: string | null,
 ) =>
   queryOptions({
-    queryKey: ["stats", "artist-detail", range, artistName],
+    queryKey: ['stats', 'artist-detail', range, artistName],
     queryFn: () => {
       if (!artistName) {
-        throw new Error("artistName is required")
+        throw new Error('artistName is required')
       }
 
       const { start, end } = rangeDates(range)
@@ -303,7 +305,7 @@ export const artistDetailQueryOptions = (
 
 export const playlistsQueryOptions = (limit = 50) =>
   queryOptions({
-    queryKey: ["spotify", "playlists", limit],
+    queryKey: ['spotify', 'playlists', limit],
     queryFn: () =>
       apiFetch<PlaylistResponse>(`/api/spotify/playlists?limit=${limit}`),
     staleTime: 60_000,
@@ -312,10 +314,10 @@ export const playlistsQueryOptions = (limit = 50) =>
 
 export const backgroundSyncStatusQueryOptions = () =>
   queryOptions({
-    queryKey: ["spotify", "background-sync-status"],
+    queryKey: ['spotify', 'background-sync-status'],
     queryFn: () =>
       apiFetch<BackgroundSyncStatusResponse>(
-        "/api/spotify/background-sync-status",
+        '/api/spotify/background-sync-status',
       ),
     staleTime: 5_000,
     refetchInterval: 10_000,
@@ -323,10 +325,10 @@ export const backgroundSyncStatusQueryOptions = () =>
 
 export const playlistInsightsQueryOptions = (playlistId: string | null) =>
   queryOptions({
-    queryKey: ["spotify", "playlist-insights", playlistId],
+    queryKey: ['spotify', 'playlist-insights', playlistId],
     queryFn: () => {
       if (!playlistId) {
-        throw new Error("playlistId is required")
+        throw new Error('playlistId is required')
       }
       return apiFetch<PlaylistInsightsResponse>(
         `/api/spotify/playlist-insights?playlistId=${encodeURIComponent(playlistId)}`,

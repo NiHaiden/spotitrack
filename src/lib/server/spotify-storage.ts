@@ -1,14 +1,5 @@
-import {
-  and,
-  count,
-  desc,
-  eq,
-  gte,
-  inArray,
-  lte,
-  sql,
-} from "drizzle-orm"
-import { db } from "@/db"
+import { and, count, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
+import { db } from '@/db'
 import {
   spotifyAlbum,
   spotifyArtist,
@@ -16,8 +7,8 @@ import {
   spotifyPlay,
   spotifyTrack,
   spotifyTrackArtist,
-} from "@/db/schema"
-import { spotifyGetWithAutoRefresh } from "@/lib/server/spotify-api"
+} from '@/db/schema'
+import { spotifyGetWithAutoRefresh } from '@/lib/server/spotify-api'
 
 const backgroundSyncLocks = new Map<string, number>()
 const BACKGROUND_SYNC_COOLDOWN_MS = 2 * 60 * 1000
@@ -92,29 +83,29 @@ type NormalizedEntry = {
 }
 
 function isClassicPrivacyEntry(value: unknown): value is ClassicPrivacyEntry {
-  if (!value || typeof value !== "object") {
+  if (!value || typeof value !== 'object') {
     return false
   }
 
   const candidate = value as Record<string, unknown>
   return (
-    typeof candidate.endTime === "string" &&
-    typeof candidate.artistName === "string" &&
-    typeof candidate.trackName === "string" &&
-    typeof candidate.msPlayed === "number"
+    typeof candidate.endTime === 'string' &&
+    typeof candidate.artistName === 'string' &&
+    typeof candidate.trackName === 'string' &&
+    typeof candidate.msPlayed === 'number'
   )
 }
 
 function isExtendedPrivacyEntry(value: unknown): value is ExtendedPrivacyEntry {
-  if (!value || typeof value !== "object") {
+  if (!value || typeof value !== 'object') {
     return false
   }
 
   const candidate = value as Record<string, unknown>
   return (
-    typeof candidate.ts === "string" &&
-    typeof candidate.ms_played === "number" &&
-    (typeof candidate.spotify_track_uri === "string" ||
+    typeof candidate.ts === 'string' &&
+    typeof candidate.ms_played === 'number' &&
+    (typeof candidate.spotify_track_uri === 'string' ||
       candidate.spotify_track_uri === null)
   )
 }
@@ -124,7 +115,7 @@ function toTrackIdFromSpotifyUri(uri: string | null | undefined) {
     return undefined
   }
 
-  const parts = uri.split(":")
+  const parts = uri.split(':')
   const last = parts[parts.length - 1]
   return last && last.length > 0 ? last : undefined
 }
@@ -142,13 +133,13 @@ function hasArtistImage(images: unknown) {
     return false
   }
 
-  return images.some(image => {
-    if (!image || typeof image !== "object") {
+  return images.some((image) => {
+    if (!image || typeof image !== 'object') {
       return false
     }
 
     const candidate = image as { url?: unknown }
-    return typeof candidate.url === "string" && candidate.url.length > 0
+    return typeof candidate.url === 'string' && candidate.url.length > 0
   })
 }
 
@@ -163,18 +154,15 @@ async function enrichArtistsWithSpotifyData(
 
   for (const batch of chunk(ids, 50)) {
     const response = await spotifyGetWithAutoRefresh<{
-      artists: Array<
-        | {
-            id: string
-            name: string
-            genres?: string[]
-            popularity?: number
-            images?: SpotifyImage[]
-          }
-        | null
-      >
-    }>(userId, "artists", {
-      ids: batch.join(","),
+      artists: Array<{
+        id: string
+        name: string
+        genres?: string[]
+        popularity?: number
+        images?: SpotifyImage[]
+      } | null>
+    }>(userId, 'artists', {
+      ids: batch.join(','),
     })
 
     for (const artist of response.artists) {
@@ -228,7 +216,9 @@ export async function upsertSpotifyMetadata(
         .where(inArray(spotifyArtist.id, artistIds))
     : []
 
-  const existingArtistMap = new Map(existingArtists.map(artist => [artist.id, artist]))
+  const existingArtistMap = new Map(
+    existingArtists.map((artist) => [artist.id, artist]),
+  )
   const artistsNeedingEnrichment = new Map<string, SpotifyArtistPayload>()
 
   for (const [artistId, artist] of artists.entries()) {
@@ -266,7 +256,7 @@ export async function upsertSpotifyMetadata(
   await db
     .insert(spotifyArtist)
     .values(
-      Array.from(artists.values()).map(artist => ({
+      Array.from(artists.values()).map((artist) => ({
         id: artist.id,
         name: artist.name,
         genres: artist.genres ?? [],
@@ -290,7 +280,7 @@ export async function upsertSpotifyMetadata(
   await db
     .insert(spotifyAlbum)
     .values(
-      Array.from(albums.values()).map(album => ({
+      Array.from(albums.values()).map((album) => ({
         id: album.id,
         name: album.name,
         releaseDate: album.release_date ?? null,
@@ -304,7 +294,7 @@ export async function upsertSpotifyMetadata(
   await db
     .insert(spotifyTrack)
     .values(
-      tracks.map(track => ({
+      tracks.map((track) => ({
         id: track.id,
         albumId: track.album.id,
         name: track.name,
@@ -319,7 +309,7 @@ export async function upsertSpotifyMetadata(
     )
     .onConflictDoNothing()
 
-  const links = tracks.flatMap(track =>
+  const links = tracks.flatMap((track) =>
     track.artists.map((artist, index) => ({
       trackId: track.id,
       artistId: artist.id,
@@ -348,7 +338,7 @@ export async function storeListeningEvents(items: PlayInsert[]) {
     return 0
   }
 
-  const playableItems = items.filter(item => item.msPlayed >= MIN_PLAY_MS)
+  const playableItems = items.filter((item) => item.msPlayed >= MIN_PLAY_MS)
 
   if (playableItems.length === 0) {
     return 0
@@ -357,7 +347,7 @@ export async function storeListeningEvents(items: PlayInsert[]) {
   const inserted = await db
     .insert(spotifyPlay)
     .values(
-      playableItems.map(item => ({
+      playableItems.map((item) => ({
         id: crypto.randomUUID(),
         userId: item.userId,
         trackId: item.trackId,
@@ -386,22 +376,22 @@ export async function storeListeningEvents(items: PlayInsert[]) {
 export async function syncRecentPlaysFromSpotify(userId: string, limit = 50) {
   const response = await spotifyGetWithAutoRefresh<{
     items: SpotifyRecentlyPlayedItem[]
-  }>(userId, "me/player/recently-played", { limit })
+  }>(userId, 'me/player/recently-played', { limit })
 
   const items = response.items ?? []
-  const tracks = items.map(item => item.track)
+  const tracks = items.map((item) => item.track)
 
   await upsertSpotifyMetadata(userId, tracks)
 
   const inserted = await storeListeningEvents(
-    items.map(item => ({
+    items.map((item) => ({
       userId,
       trackId: item.track.id,
       trackName: item.track.name,
-      artistName: item.track.artists[0]?.name ?? "Unknown Artist",
+      artistName: item.track.artists[0]?.name ?? 'Unknown Artist',
       playedAt: new Date(item.played_at),
       msPlayed: item.track.duration_ms,
-      source: "spotify-recent",
+      source: 'spotify-recent',
     })),
   )
 
@@ -450,13 +440,12 @@ export function triggerBackgroundRecentSync(userId: string, limit = 50) {
 export async function getBackgroundSyncStatus(userId: string) {
   const now = Date.now()
   const lastRun = backgroundSyncLocks.get(userId)
-  const runtimeState =
-    backgroundSyncRuntime.get(userId) ?? {
-      isRunning: false,
-      lastTriggeredAt: null,
-      lastCompletedAt: null,
-      lastErrorAt: null,
-    }
+  const runtimeState = backgroundSyncRuntime.get(userId) ?? {
+    isRunning: false,
+    lastTriggeredAt: null,
+    lastCompletedAt: null,
+    lastErrorAt: null,
+  }
 
   const [latestPersisted] = await db
     .select({
@@ -467,7 +456,7 @@ export async function getBackgroundSyncStatus(userId: string) {
     .where(
       and(
         eq(spotifyPlay.userId, userId),
-        eq(spotifyPlay.source, "spotify-recent"),
+        eq(spotifyPlay.source, 'spotify-recent'),
       ),
     )
     .orderBy(desc(spotifyPlay.createdAt))
@@ -509,7 +498,7 @@ async function fetchTracksByIds(userId: string, ids: string[]) {
   for (const batch of chunk(unique, 50)) {
     const response = await spotifyGetWithAutoRefresh<{
       tracks: Array<SpotifyTrackPayload | null>
-    }>(userId, "tracks", { ids: batch.join(",") })
+    }>(userId, 'tracks', { ids: batch.join(',') })
 
     for (const track of response.tracks) {
       if (track) {
@@ -528,9 +517,9 @@ async function searchTrack(
 ): Promise<SpotifyTrackPayload | null> {
   const response = await spotifyGetWithAutoRefresh<{
     tracks: { items: SpotifyTrackPayload[] }
-  }>(userId, "search", {
+  }>(userId, 'search', {
     q: `track:${trackName} artist:${artistName}`,
-    type: "track",
+    type: 'track',
     limit: 1,
   })
 
@@ -580,7 +569,7 @@ function normalizeImportedEntries(entries: unknown[]): NormalizedEntry[] {
 export async function importStreamingHistory(
   userId: string,
   entries: unknown[],
-  type: "privacy" | "full-privacy" = "privacy",
+  type: 'privacy' | 'full-privacy' = 'privacy',
 ) {
   const importId = crypto.randomUUID()
 
@@ -588,7 +577,7 @@ export async function importStreamingHistory(
     id: importId,
     userId,
     type,
-    status: "processing",
+    status: 'processing',
     totalRows: entries.length,
     processedRows: 0,
     metadata: {},
@@ -630,7 +619,7 @@ export async function importStreamingHistory(
 
     await upsertSpotifyMetadata(userId, Array.from(tracksById.values()))
 
-    const toInsert: PlayInsert[] = normalized.map(entry => {
+    const toInsert: PlayInsert[] = normalized.map((entry) => {
       let resolvedTrack =
         (entry.spotifyTrackId && tracksById.get(entry.spotifyTrackId)) || null
 
@@ -644,7 +633,9 @@ export async function importStreamingHistory(
         trackId: resolvedTrack?.id,
         trackName: resolvedTrack?.name ?? entry.trackName,
         artistName:
-          resolvedTrack?.artists[0]?.name ?? entry.artistName ?? "Unknown Artist",
+          resolvedTrack?.artists[0]?.name ??
+          entry.artistName ??
+          'Unknown Artist',
         playedAt: entry.playedAt,
         msPlayed: entry.msPlayed,
         source: `import-${type}`,
@@ -657,7 +648,7 @@ export async function importStreamingHistory(
     await db
       .update(spotifyImport)
       .set({
-        status: "success",
+        status: 'success',
         processedRows: normalized.length,
         metadata: {
           inserted,
@@ -675,12 +666,13 @@ export async function importStreamingHistory(
       tracksResolved: tracksById.size,
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown import error"
+    const message =
+      error instanceof Error ? error.message : 'Unknown import error'
 
     await db
       .update(spotifyImport)
       .set({
-        status: "failure",
+        status: 'failure',
         error: message,
         updatedAt: new Date(),
       })
@@ -753,7 +745,9 @@ export async function getStatsOverview(
     .orderBy(desc(count()), desc(sql`sum(${spotifyPlay.msPlayed})`))
     .limit(limit)
 
-  const artistNames = Array.from(new Set(topArtistsBase.map(item => item.artistName)))
+  const artistNames = Array.from(
+    new Set(topArtistsBase.map((item) => item.artistName)),
+  )
   const artistRows = artistNames.length
     ? await db
         .select({
@@ -773,11 +767,12 @@ export async function getStatsOverview(
     const images = Array.isArray(artist.images)
       ? (artist.images as Array<{ url?: string }>)
       : []
-    const imageUrl = images.find(image => typeof image?.url === "string")?.url ?? null
+    const imageUrl =
+      images.find((image) => typeof image?.url === 'string')?.url ?? null
     artistImageMap.set(artist.name, imageUrl)
   }
 
-  const topArtists = topArtistsBase.map(item => ({
+  const topArtists = topArtistsBase.map((item) => ({
     ...item,
     imageUrl: artistImageMap.get(item.artistName) ?? null,
   }))
@@ -894,8 +889,12 @@ export async function getTrackDrilldown(
   const trackFilter = options.trackId
     ? eq(spotifyPlay.trackId, options.trackId)
     : and(
-        options.trackName ? eq(spotifyPlay.trackName, options.trackName) : undefined,
-        options.artistName ? eq(spotifyPlay.artistName, options.artistName) : undefined,
+        options.trackName
+          ? eq(spotifyPlay.trackName, options.trackName)
+          : undefined,
+        options.artistName
+          ? eq(spotifyPlay.artistName, options.artistName)
+          : undefined,
       )
 
   const where = and(

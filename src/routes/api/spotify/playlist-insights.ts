@@ -1,13 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute } from '@tanstack/react-router'
 import {
   getTrackSetOverview,
   triggerBackgroundRecentSync,
-} from "@/lib/server/spotify-storage"
-import { json, requireSession } from "@/lib/server/session"
+} from '@/lib/server/spotify-storage'
+import { json, requireSession } from '@/lib/server/session'
 import {
   SpotifyAuthError,
   spotifyGetWithAutoRefresh,
-} from "@/lib/server/spotify-api"
+} from '@/lib/server/spotify-api'
 
 type PlaylistTrackItem = {
   track: {
@@ -35,22 +35,22 @@ type PlaylistTracksPage = {
   next: string | null
 }
 
-export const Route = createFileRoute("/api/spotify/playlist-insights")({
+export const Route = createFileRoute('/api/spotify/playlist-insights')({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const session = await requireSession(request)
         if (!session) {
-          return json({ error: "Unauthorized" }, 401)
+          return json({ error: 'Unauthorized' }, 401)
         }
 
         triggerBackgroundRecentSync(session.user.id)
 
         const url = new URL(request.url)
-        const playlistId = url.searchParams.get("playlistId")
+        const playlistId = url.searchParams.get('playlistId')
 
         if (!playlistId) {
-          return json({ error: "Missing playlistId" }, 400)
+          return json({ error: 'Missing playlistId' }, 400)
         }
 
         try {
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/api/spotify/playlist-insights")({
             `playlists/${playlistId}`,
             {
               limit: 100,
-              market: "from_token",
+              market: 'from_token',
             },
           )
 
@@ -74,7 +74,7 @@ export const Route = createFileRoute("/api/spotify/playlist-insights")({
               {
                 limit: 100,
                 offset,
-                market: "from_token",
+                market: 'from_token',
               },
             )
             tracks.push(...(page.items ?? []))
@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/spotify/playlist-insights")({
           const trackIds = Array.from(
             new Set(
               tracks
-                .map(item => item.track?.id)
+                .map((item) => item.track?.id)
                 .filter((id): id is string => Boolean(id)),
             ),
           )
@@ -99,7 +99,7 @@ export const Route = createFileRoute("/api/spotify/playlist-insights")({
               id: playlist.id,
               name: playlist.name,
               imageUrl: playlist.images?.[0]?.url ?? null,
-              ownerName: playlist.owner?.display_name ?? "Unknown",
+              ownerName: playlist.owner?.display_name ?? 'Unknown',
               trackCount: playlist.tracks.total,
             },
             tracked,
@@ -112,7 +112,7 @@ export const Route = createFileRoute("/api/spotify/playlist-insights")({
           if (error instanceof SpotifyAuthError) {
             return json({ error: error.message }, error.status)
           }
-          return json({ error: "Failed to fetch playlist insights" }, 500)
+          return json({ error: 'Failed to fetch playlist insights' }, 500)
         }
       },
     },

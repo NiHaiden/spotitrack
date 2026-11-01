@@ -147,12 +147,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -240,12 +236,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -255,9 +247,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -479,12 +469,8 @@
           "name": "spotify_import_user_id_user_id_fk",
           "tableFrom": "spotify_import",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -653,12 +639,8 @@
           "name": "spotify_play_user_id_user_id_fk",
           "tableFrom": "spotify_play",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -666,12 +648,8 @@
           "name": "spotify_play_track_id_spotify_track_id_fk",
           "tableFrom": "spotify_play",
           "tableTo": "spotify_track",
-          "columnsFrom": [
-            "track_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["track_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -679,12 +657,8 @@
           "name": "spotify_play_import_id_spotify_import_id_fk",
           "tableFrom": "spotify_play",
           "tableTo": "spotify_import",
-          "columnsFrom": [
-            "import_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["import_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -784,12 +758,8 @@
           "name": "spotify_track_album_id_spotify_album_id_fk",
           "tableFrom": "spotify_track",
           "tableTo": "spotify_album",
-          "columnsFrom": [
-            "album_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["album_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -861,12 +831,8 @@
           "name": "spotify_track_artist_track_id_spotify_track_id_fk",
           "tableFrom": "spotify_track_artist",
           "tableTo": "spotify_track",
-          "columnsFrom": [
-            "track_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["track_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -874,12 +840,8 @@
           "name": "spotify_track_artist_artist_id_spotify_artist_id_fk",
           "tableFrom": "spotify_track_artist",
           "tableTo": "spotify_artist",
-          "columnsFrom": [
-            "artist_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["artist_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -887,10 +849,7 @@
       "compositePrimaryKeys": {
         "spotify_track_artist_track_id_artist_id_pk": {
           "name": "spotify_track_artist_track_id_artist_id_pk",
-          "columns": [
-            "track_id",
-            "artist_id"
-          ]
+          "columns": ["track_id", "artist_id"]
         }
       },
       "uniqueConstraints": {},
@@ -955,9 +914,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},

@@ -1,16 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { desc, eq } from "drizzle-orm"
-import { db } from "@/db"
-import { spotifyImport } from "@/db/schema"
-import { json, requireSession } from "@/lib/server/session"
+import { createFileRoute } from '@tanstack/react-router'
+import { desc, eq } from 'drizzle-orm'
+import { db } from '@/db'
+import { spotifyImport } from '@/db/schema'
+import { json, requireSession } from '@/lib/server/session'
 
-export const Route = createFileRoute("/api/imports")({
+export const Route = createFileRoute('/api/imports')({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const session = await requireSession(request)
         if (!session) {
-          return json({ error: "Unauthorized" }, 401)
+          return json({ error: 'Unauthorized' }, 401)
         }
 
         const imports = await db

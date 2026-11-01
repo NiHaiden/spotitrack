@@ -1,7 +1,7 @@
-import { db } from "@/db"
-import { account } from "@/db/schema"
-import { eq } from "drizzle-orm"
-import { syncRecentPlaysFromSpotify } from "@/lib/server/spotify-storage"
+import { db } from '@/db'
+import { account } from '@/db/schema'
+import { eq } from 'drizzle-orm'
+import { syncRecentPlaysFromSpotify } from '@/lib/server/spotify-storage'
 
 const DEFAULT_SYNC_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 const STAGGER_DELAY_MS = 5_000 // 5s between users to avoid rate limits
@@ -23,7 +23,7 @@ async function getAllSpotifyUserIds(): Promise<Array<string>> {
   const rows = await db
     .select({ userId: account.userId })
     .from(account)
-    .where(eq(account.providerId, "spotify"))
+    .where(eq(account.providerId, 'spotify'))
 
   return [...new Set(rows.map((r) => r.userId))]
 }
@@ -37,7 +37,7 @@ async function syncAllUsers() {
   try {
     userIds = await getAllSpotifyUserIds()
   } catch (err) {
-    console.error("[sync-scheduler] Failed to query users:", err)
+    console.error('[sync-scheduler] Failed to query users:', err)
     return
   }
 
@@ -92,7 +92,11 @@ export function startSyncScheduler() {
   }, intervalMs)
 
   // Don't prevent process exit
-  if (intervalHandle && typeof intervalHandle === "object" && "unref" in intervalHandle) {
+  if (
+    intervalHandle &&
+    typeof intervalHandle === 'object' &&
+    'unref' in intervalHandle
+  ) {
     intervalHandle.unref()
   }
 }
@@ -101,6 +105,6 @@ export function stopSyncScheduler() {
   if (intervalHandle) {
     clearInterval(intervalHandle)
     intervalHandle = null
-    console.log("[sync-scheduler] Stopped background sync")
+    console.log('[sync-scheduler] Stopped background sync')
   }
 }

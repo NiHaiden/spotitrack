@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute } from '@tanstack/react-router'
 import {
   getArtistDrilldown,
   triggerBackgroundRecentSync,
-} from "@/lib/server/spotify-storage"
-import { json, requireSession } from "@/lib/server/session"
+} from '@/lib/server/spotify-storage'
+import { json, requireSession } from '@/lib/server/session'
 
 function parseDate(value: string | null, fallback: Date) {
   if (!value) return fallback
@@ -11,26 +11,26 @@ function parseDate(value: string | null, fallback: Date) {
   return Number.isNaN(parsed.getTime()) ? fallback : parsed
 }
 
-export const Route = createFileRoute("/api/stats/artist-detail")({
+export const Route = createFileRoute('/api/stats/artist-detail')({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const session = await requireSession(request)
         if (!session) {
-          return json({ error: "Unauthorized" }, 401)
+          return json({ error: 'Unauthorized' }, 401)
         }
 
         triggerBackgroundRecentSync(session.user.id)
 
         const url = new URL(request.url)
-        const end = parseDate(url.searchParams.get("end"), new Date())
+        const end = parseDate(url.searchParams.get('end'), new Date())
         const defaultStart = new Date(end)
         defaultStart.setDate(defaultStart.getDate() - 30)
-        const start = parseDate(url.searchParams.get("start"), defaultStart)
+        const start = parseDate(url.searchParams.get('start'), defaultStart)
 
-        const artistName = url.searchParams.get("artistName")
+        const artistName = url.searchParams.get('artistName')
         if (!artistName) {
-          return json({ error: "Missing artistName" }, 400)
+          return json({ error: 'Missing artistName' }, 400)
         }
 
         const details = await getArtistDrilldown(session.user.id, {

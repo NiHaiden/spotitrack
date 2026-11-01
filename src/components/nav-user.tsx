@@ -1,10 +1,6 @@
-"use client"
+'use client'
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +9,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useSession, signOut } from "@/lib/auth-client"
-import { IconSelector, IconLogout } from "@tabler/icons-react"
-import { useRouter } from "@tanstack/react-router"
-import { initials } from "@/lib/format"
+} from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useSession, signOut } from '@/lib/auth-client'
+import { IconSelector, IconLogout } from '@tabler/icons-react'
+import { useRouter } from '@tanstack/react-router'
+import { initials } from '@/lib/format'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
@@ -64,19 +60,19 @@ export function NavUser() {
           >
             <Avatar>
               <AvatarImage src={user.image ?? undefined} alt={user.name} />
-              <AvatarFallback>
-                {initials(user.name)}
-              </AvatarFallback>
+              <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+              <span className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </span>
             </div>
             <IconSelector className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -88,13 +84,13 @@ export function NavUser() {
                       src={user.image ?? undefined}
                       alt={user.name}
                     />
-                    <AvatarFallback>
-                      {initials(user.name)}
-                    </AvatarFallback>
+                    <AvatarFallback>{initials(user.name)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
                   </div>
                 </div>
               </DropdownMenuLabel>
@@ -103,7 +99,7 @@ export function NavUser() {
             <DropdownMenuItem
               onClick={async () => {
                 await signOut()
-                router.navigate({ to: "/sign-in" })
+                router.navigate({ to: '/sign-in' })
               }}
             >
               <IconLogout />

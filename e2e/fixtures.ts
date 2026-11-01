@@ -2,7 +2,7 @@
 // database seeder. Erasable-only TypeScript so the mock server runs with bare
 // `node` (type stripping, Node >= 22.18).
 
-import { createHmac } from "node:crypto"
+import { createHmac } from 'node:crypto'
 
 export const E2E_APP_PORT = Number(process.env.E2E_APP_PORT ?? 3100)
 export const E2E_MOCK_PORT = Number(process.env.E2E_MOCK_PORT ?? 3199)
@@ -10,33 +10,33 @@ export const E2E_APP_URL = `http://localhost:${E2E_APP_PORT}`
 export const E2E_MOCK_URL = `http://localhost:${E2E_MOCK_PORT}`
 export const E2E_DATABASE_URL =
   process.env.E2E_DATABASE_URL ??
-  "postgres://postgres@127.0.0.1:5432/spotitrack_e2e"
-export const E2E_AUTH_SECRET = "Zq3v8KpL2mNw7Xr4Tj9Bc6Hd1Fs5Gy0E-e2e-only"
+  'postgres://postgres@127.0.0.1:5432/spotitrack_e2e'
+export const E2E_AUTH_SECRET = 'Zq3v8KpL2mNw7Xr4Tj9Bc6Hd1Fs5Gy0E-e2e-only'
 
 export const testUser = {
-  id: "e2e-user",
-  name: "Robin Example",
-  email: "robin@example.com",
-  sessionToken: "e2e-session-token",
+  id: 'e2e-user',
+  name: 'Robin Example',
+  email: 'robin@example.com',
+  sessionToken: 'e2e-session-token',
 }
 
-export const SESSION_COOKIE = "better-auth.session_token"
+export const SESSION_COOKIE = 'better-auth.session_token'
 
 // Same format better-call uses for signed cookies: `${value}.${base64(hmac-sha256)}`
 export function signCookieValue(value: string, secret = E2E_AUTH_SECRET) {
-  const signature = createHmac("sha256", secret).update(value).digest("base64")
+  const signature = createHmac('sha256', secret).update(value).digest('base64')
   return encodeURIComponent(`${value}.${signature}`)
 }
 
 const palette: Array<[string, string]> = [
-  ["#f59e0b", "#7c2d12"],
-  ["#ec4899", "#4c1d95"],
-  ["#22d3ee", "#1e3a8a"],
-  ["#84cc16", "#14532d"],
-  ["#f97316", "#831843"],
-  ["#a78bfa", "#1e1b4b"],
-  ["#facc15", "#78350f"],
-  ["#2dd4bf", "#134e4a"],
+  ['#f59e0b', '#7c2d12'],
+  ['#ec4899', '#4c1d95'],
+  ['#22d3ee', '#1e3a8a'],
+  ['#84cc16', '#14532d'],
+  ['#f97316', '#831843'],
+  ['#a78bfa', '#1e1b4b'],
+  ['#facc15', '#78350f'],
+  ['#2dd4bf', '#134e4a'],
 ]
 
 export function coverUrl(seed: string) {
@@ -69,19 +69,64 @@ export type FixtureArtist = {
 
 // Fictional catalog. Weight = how often the artist shows up in history.
 export const artists: Array<FixtureArtist> = [
-  { id: "ar-aurora", name: "Aurora Lane", weight: 14, tracks: ["Northern Static", "Glasshouse", "Slow Satellites", "Paper Moons"] },
-  { id: "ar-violet", name: "The Violet Hours", weight: 10, tracks: ["Midnight Transit", "Velvet Signal", "Blue Hour"] },
-  { id: "ar-kepler", name: "Kepler Drive", weight: 8, tracks: ["Orbitals", "Afterburn", "Low Gravity"] },
-  { id: "ar-mara", name: "Mara Okafor", weight: 7, tracks: ["Golden Thread", "Harmattan", "Tide Lines"] },
-  { id: "ar-neon", name: "Neon Pastoral", weight: 6, tracks: ["Fieldwork", "Analog Meadow"] },
-  { id: "ar-saltwater", name: "Saltwater Kids", weight: 5, tracks: ["Undertow", "Summer Static"] },
-  { id: "ar-elm", name: "Elm & Ember", weight: 4, tracks: ["Woodsmoke", "Lantern"] },
-  { id: "ar-juno", name: "Juno Reyes", weight: 3, tracks: ["Cartography", "Small Hours"] },
-  { id: "ar-pilot", name: "Paper Pilot", weight: 2, tracks: ["Crosswind"] },
-  { id: "ar-quiet", name: "Quiet Machines", weight: 2, tracks: ["Idle Loop", "Soft Reset"] },
+  {
+    id: 'ar-aurora',
+    name: 'Aurora Lane',
+    weight: 14,
+    tracks: ['Northern Static', 'Glasshouse', 'Slow Satellites', 'Paper Moons'],
+  },
+  {
+    id: 'ar-violet',
+    name: 'The Violet Hours',
+    weight: 10,
+    tracks: ['Midnight Transit', 'Velvet Signal', 'Blue Hour'],
+  },
+  {
+    id: 'ar-kepler',
+    name: 'Kepler Drive',
+    weight: 8,
+    tracks: ['Orbitals', 'Afterburn', 'Low Gravity'],
+  },
+  {
+    id: 'ar-mara',
+    name: 'Mara Okafor',
+    weight: 7,
+    tracks: ['Golden Thread', 'Harmattan', 'Tide Lines'],
+  },
+  {
+    id: 'ar-neon',
+    name: 'Neon Pastoral',
+    weight: 6,
+    tracks: ['Fieldwork', 'Analog Meadow'],
+  },
+  {
+    id: 'ar-saltwater',
+    name: 'Saltwater Kids',
+    weight: 5,
+    tracks: ['Undertow', 'Summer Static'],
+  },
+  {
+    id: 'ar-elm',
+    name: 'Elm & Ember',
+    weight: 4,
+    tracks: ['Woodsmoke', 'Lantern'],
+  },
+  {
+    id: 'ar-juno',
+    name: 'Juno Reyes',
+    weight: 3,
+    tracks: ['Cartography', 'Small Hours'],
+  },
+  { id: 'ar-pilot', name: 'Paper Pilot', weight: 2, tracks: ['Crosswind'] },
+  {
+    id: 'ar-quiet',
+    name: 'Quiet Machines',
+    weight: 2,
+    tracks: ['Idle Loop', 'Soft Reset'],
+  },
 ]
 
-export const tracks = artists.flatMap(artist =>
+export const tracks = artists.flatMap((artist) =>
   artist.tracks.map((name, index) => ({
     id: `tr-${artist.id.slice(3)}-${index}`,
     name,
@@ -99,11 +144,37 @@ export type FixturePlaylist = {
 }
 
 export const playlists: Array<FixturePlaylist> = [
-  { id: "pl-focus", name: "Deep Focus", trackIds: tracks.filter((_, i) => i % 2 === 0).map(t => t.id) },
-  { id: "pl-night", name: "Night Drive", trackIds: tracks.filter(t => ["ar-violet", "ar-kepler", "ar-quiet"].includes(t.artistId)).map(t => t.id) },
-  { id: "pl-sunday", name: "Sunday Morning", trackIds: tracks.filter(t => ["ar-mara", "ar-elm", "ar-juno"].includes(t.artistId)).map(t => t.id) },
-  { id: "pl-gym", name: "Gym Rotation", trackIds: tracks.filter(t => ["ar-saltwater", "ar-kepler", "ar-neon"].includes(t.artistId)).map(t => t.id) },
-  { id: "pl-empty", name: "Ideas (empty)", trackIds: [], noImage: true },
+  {
+    id: 'pl-focus',
+    name: 'Deep Focus',
+    trackIds: tracks.filter((_, i) => i % 2 === 0).map((t) => t.id),
+  },
+  {
+    id: 'pl-night',
+    name: 'Night Drive',
+    trackIds: tracks
+      .filter((t) =>
+        ['ar-violet', 'ar-kepler', 'ar-quiet'].includes(t.artistId),
+      )
+      .map((t) => t.id),
+  },
+  {
+    id: 'pl-sunday',
+    name: 'Sunday Morning',
+    trackIds: tracks
+      .filter((t) => ['ar-mara', 'ar-elm', 'ar-juno'].includes(t.artistId))
+      .map((t) => t.id),
+  },
+  {
+    id: 'pl-gym',
+    name: 'Gym Rotation',
+    trackIds: tracks
+      .filter((t) =>
+        ['ar-saltwater', 'ar-kepler', 'ar-neon'].includes(t.artistId),
+      )
+      .map((t) => t.id),
+  },
+  { id: 'pl-empty', name: 'Ideas (empty)', trackIds: [], noImage: true },
 ]
 
 function mulberry32(seed: number) {
@@ -145,21 +216,28 @@ export function buildPlays(now = new Date()): Array<FixturePlay> {
 
   const plays: Array<FixturePlay> = []
   for (let daysAgo = 44; daysAgo >= 0; daysAgo--) {
-    const weekend = (new Date(end.getTime() - daysAgo * 86_400_000).getUTCDay() % 6) === 0
+    const weekend =
+      new Date(end.getTime() - daysAgo * 86_400_000).getUTCDay() % 6 === 0
     const sessions = 1 + Math.floor(random() * (weekend ? 4 : 3))
     for (let s = 0; s < sessions; s++) {
       // Evening-heavy distribution with a morning commute bump.
-      const hour = random() < 0.3 ? 7 + Math.floor(random() * 3) : 17 + Math.floor(random() * 6)
+      const hour =
+        random() < 0.3
+          ? 7 + Math.floor(random() * 3)
+          : 17 + Math.floor(random() * 6)
       let cursor = new Date(end.getTime() - daysAgo * 86_400_000)
       cursor.setUTCHours(hour, Math.floor(random() * 60), 0, 0)
       const length = 3 + Math.floor(random() * 8)
       for (let i = 0; i < length; i++) {
         if (cursor.getTime() > end.getTime()) break
         const artist = pickArtist()
-        const artistTracks = tracks.filter(t => t.artistId === artist.id)
-        const track = artistTracks[Math.floor(random() * random() * artistTracks.length)]
+        const artistTracks = tracks.filter((t) => t.artistId === artist.id)
+        const track =
+          artistTracks[Math.floor(random() * random() * artistTracks.length)]
         const skipped = random() < 0.12
-        const msPlayed = skipped ? Math.floor(track.durationMs * random() * 0.4) : track.durationMs
+        const msPlayed = skipped
+          ? Math.floor(track.durationMs * random() * 0.4)
+          : track.durationMs
         plays.push({
           id: `play-${plays.length}`,
           trackId: track.id,
@@ -167,7 +245,7 @@ export function buildPlays(now = new Date()): Array<FixturePlay> {
           artistName: track.artistName,
           playedAt: new Date(cursor),
           msPlayed,
-          source: i % 5 === 0 ? "import-privacy" : "spotify-recent",
+          source: i % 5 === 0 ? 'import-privacy' : 'spotify-recent',
         })
         cursor = new Date(cursor.getTime() + msPlayed + 5_000)
       }

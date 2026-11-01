@@ -1,8 +1,8 @@
-import { useRouter } from "@tanstack/react-router"
-import { createContext, use } from "react"
-import type { PropsWithChildren } from "react"
-import type { Theme } from "@/lib/theme"
-import { setThemeServerFn } from "@/lib/theme"
+import { useRouter } from '@tanstack/react-router'
+import { createContext, use } from 'react'
+import type { PropsWithChildren } from 'react'
+import type { Theme } from '@/lib/theme'
+import { setThemeServerFn } from '@/lib/theme'
 
 interface ThemeContextVal {
   theme: Theme
@@ -19,12 +19,12 @@ export function ThemeProvider({
   const router = useRouter()
 
   function setTheme(val: Theme) {
-    document.documentElement.classList.toggle("dark", val === "dark")
+    document.documentElement.classList.toggle('dark', val === 'dark')
     void setThemeServerFn({ data: val }).then(() => router.invalidate())
   }
 
   function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark")
+    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   return (
@@ -36,6 +36,6 @@ export function ThemeProvider({
 
 export function useTheme() {
   const val = use(ThemeContext)
-  if (!val) throw new Error("useTheme called outside of ThemeProvider!")
+  if (!val) throw new Error('useTheme called outside of ThemeProvider!')
   return val
 }

@@ -1,12 +1,12 @@
-import { and, eq } from "drizzle-orm"
-import { db } from "@/db"
-import { account } from "@/db/schema"
+import { and, eq } from 'drizzle-orm'
+import { db } from '@/db'
+import { account } from '@/db/schema'
 
 // Overridable so e2e tests can point the server at a local mock.
 const SPOTIFY_API_BASE =
-  process.env.SPOTIFY_API_BASE_URL || "https://api.spotify.com/v1"
+  process.env.SPOTIFY_API_BASE_URL || 'https://api.spotify.com/v1'
 const SPOTIFY_ACCOUNTS_BASE =
-  process.env.SPOTIFY_ACCOUNTS_BASE_URL || "https://accounts.spotify.com"
+  process.env.SPOTIFY_ACCOUNTS_BASE_URL || 'https://accounts.spotify.com'
 
 type SpotifyRefreshResponse = {
   access_token: string
@@ -29,7 +29,7 @@ async function getSpotifyAccountForUser(userId: string) {
   const rows = await db
     .select()
     .from(account)
-    .where(and(eq(account.userId, userId), eq(account.providerId, "spotify")))
+    .where(and(eq(account.userId, userId), eq(account.providerId, 'spotify')))
     .limit(1)
 
   return rows[0] ?? null
@@ -41,22 +41,22 @@ async function refreshSpotifyToken(userId: string, refreshToken: string) {
 
   if (!clientId || !clientSecret) {
     throw new SpotifyAuthError(
-      "Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET",
+      'Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET',
       500,
     )
   }
 
-  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
   const body = new URLSearchParams({
-    grant_type: "refresh_token",
+    grant_type: 'refresh_token',
     refresh_token: refreshToken,
   })
 
   const response = await fetch(`${SPOTIFY_ACCOUNTS_BASE}/api/token`, {
-    method: "POST",
+    method: 'POST',
     headers: {
       Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: body.toString(),
   })
@@ -81,7 +81,7 @@ async function refreshSpotifyToken(userId: string, refreshToken: string) {
       scope: payload.scope,
       updatedAt: new Date(),
     })
-    .where(and(eq(account.userId, userId), eq(account.providerId, "spotify")))
+    .where(and(eq(account.userId, userId), eq(account.providerId, 'spotify')))
 
   return payload.access_token
 }
@@ -90,23 +90,22 @@ export async function getSpotifyAccessTokenForUser(userId: string) {
   const spotifyAccount = await getSpotifyAccountForUser(userId)
 
   if (!spotifyAccount) {
-    throw new SpotifyAuthError("Spotify account is not connected", 404)
+    throw new SpotifyAuthError('Spotify account is not connected', 404)
   }
 
   if (!spotifyAccount.accessToken) {
-    throw new SpotifyAuthError("No Spotify access token available", 401)
+    throw new SpotifyAuthError('No Spotify access token available', 401)
   }
 
   const expiresAt = spotifyAccount.accessTokenExpiresAt
-  const stillValid =
-    expiresAt && expiresAt.getTime() - Date.now() > 60 * 1000
+  const stillValid = expiresAt && expiresAt.getTime() - Date.now() > 60 * 1000
 
   if (stillValid) {
     return spotifyAccount.accessToken
   }
 
   if (!spotifyAccount.refreshToken) {
-    throw new SpotifyAuthError("Spotify refresh token is missing", 401)
+    throw new SpotifyAuthError('Spotify refresh token is missing', 401)
   }
 
   return refreshSpotifyToken(userId, spotifyAccount.refreshToken)
@@ -166,7 +165,10 @@ export async function spotifyGetWithAutoRefresh<T>(
       if (!accountRow?.refreshToken) {
         throw error
       }
-      const refreshed = await refreshSpotifyToken(userId, accountRow.refreshToken)
+      const refreshed = await refreshSpotifyToken(
+        userId,
+        accountRow.refreshToken,
+      )
       return spotifyGet<T>(refreshed, pathname, query)
     }
 

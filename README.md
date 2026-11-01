@@ -26,7 +26,9 @@ pnpm dev
 
 Playwright drives a production build against a seeded Postgres database and a
 local mock of the Spotify API (`e2e/mock-spotify.ts`), so no Spotify account or
-network access is needed. Requires Node ≥ 22.18.
+network access is needed. Needs the Node version from `engines` — the mock is
+plain `.ts` run through Node's built-in type stripping, which some distro Node
+builds leave out.
 
 ```bash
 # Uses postgres://postgres@127.0.0.1:5432/spotitrack_e2e by default.
@@ -78,18 +80,18 @@ The build produces a self-contained `.output/` directory — no `node_modules` n
 
 ### Environment variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | ✅ | Postgres connection string |
-| `BETTER_AUTH_URL` | ✅ | Your public app URL (e.g. `https://spotitrack.example.com`) |
-| `BETTER_AUTH_SECRET` | ✅ | Random secret for session signing (≥32 chars) |
-| `SPOTIFY_CLIENT_ID` | ✅ | Spotify OAuth client ID |
-| `SPOTIFY_CLIENT_SECRET` | ✅ | Spotify OAuth client secret |
-| `SPOTIFY_REDIRECT_URI` | ✅ | OAuth callback URL |
-| `VITE_BETTER_AUTH_URL` | ✅ | Same as `BETTER_AUTH_URL` (inlined into client build) |
-| `BETTER_AUTH_TRUSTED_ORIGINS` | ❌ | Comma-separated allowed origins |
-| `PORT` | ❌ | Server port (default: `3000`) |
-| `HOST` | ❌ | Listen address (default: `0.0.0.0`) |
+| Variable                      | Required | Description                                                 |
+| ----------------------------- | -------- | ----------------------------------------------------------- |
+| `DATABASE_URL`                | ✅       | Postgres connection string                                  |
+| `BETTER_AUTH_URL`             | ✅       | Your public app URL (e.g. `https://spotitrack.example.com`) |
+| `BETTER_AUTH_SECRET`          | ✅       | Random secret for session signing (≥32 chars)               |
+| `SPOTIFY_CLIENT_ID`           | ✅       | Spotify OAuth client ID                                     |
+| `SPOTIFY_CLIENT_SECRET`       | ✅       | Spotify OAuth client secret                                 |
+| `SPOTIFY_REDIRECT_URI`        | ✅       | OAuth callback URL                                          |
+| `VITE_BETTER_AUTH_URL`        | ✅       | Same as `BETTER_AUTH_URL` (inlined into client build)       |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | ❌       | Comma-separated allowed origins                             |
+| `PORT`                        | ❌       | Server port (default: `3000`)                               |
+| `HOST`                        | ❌       | Listen address (default: `0.0.0.0`)                         |
 
 ## Tech stack
 
